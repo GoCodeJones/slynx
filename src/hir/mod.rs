@@ -455,6 +455,7 @@ impl SlynxHir {
     ///Hoist the provided `ast` declaration, with so no errors of undefined values because declared later may occurr
     fn hoist(&mut self, ast: &ASTDeclaration) -> Result<(), HIRError> {
         match &ast.kind {
+            ASTDeclarationKind::MacroCall(..) => {}
             ASTDeclarationKind::FuncDeclaration {
                 name,
                 args,
@@ -528,6 +529,7 @@ impl SlynxHir {
     }
     fn resolve(&mut self, ast: ASTDeclaration) -> Result<(), HIRError> {
         match ast.kind {
+            ASTDeclarationKind::MacroCall(..) => {}
             ASTDeclarationKind::FuncDeclaration {
                 name,
                 args,

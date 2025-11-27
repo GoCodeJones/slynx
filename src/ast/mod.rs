@@ -93,11 +93,18 @@ pub struct ASTStatment {
 }
 
 #[derive(Debug)]
+pub struct MacroCallDecl {
+    pub name: String,
+    pub args: Vec<ASTDeclaration>,
+}
+#[derive(Debug)]
+pub struct MacroCallStmt {
+    pub name: String,
+    pub args: Vec<ASTStatment>,
+}
+#[derive(Debug)]
 pub enum ASTStatmentKind {
-    MacroCall {
-        name: String,
-        args: Vec<ASTStatment>,
-    },
+    MacroCall(MacroCallStmt),
     Var {
         name: String,
         ty: Option<GenericIdentifier>,
@@ -151,6 +158,7 @@ pub struct ASTDeclaration {
 
 #[derive(Debug)]
 pub enum ASTDeclarationKind {
+    MacroCall(MacroCallDecl),
     ElementDeclaration {
         name: String,
         deffinitions: Vec<ElementDeffinition>,

@@ -1,7 +1,7 @@
 use crate::ast::{
     PropertyModifier, ASTDeclaration, ASTDeclarationKind, GenericIdentifier, ElementDeffinition, ElementDeffinitionKind,
     ASTExpression, ASTExpressionKind, Operator, ElementExpression, ElementValue, TypedName, ASTStatment, ASTStatmentKind,
-    Span
+    Span, MacroCallStmt, MacroCallDecl
 };
 
 use std::str::FromStr;
@@ -194,20 +194,36 @@ Statment:ASTStatment = {
     <start:@L> <expr:Expression> <end:@R> => ASTStatment{
         kind:ASTStatmentKind::Expression(expr),
         span: Span{end,start}
-    }
+    },
+    MacroCallStatment
 };
 
-MacroCall:ASTStatment = {
-    <start:@L> <name:Identifier> "!" LPAREN <stmts:Statment*> RPAREN <end:@R> => ASTStatment {
-        kind:ASTStatmentKind::MacroCall{
+
+MacroCallDeclaration:ASTDeclaration= {
+    <start:@L> "@" <name:Identifier> LPAREN <stmts:TopLevelDeclaration*> RPAREN <end:@R> => ASTDeclaration {
+        kind:ASTDeclarationKind::MacroCall(MacroCallDecl{
             name, args:stmts
-        },
+        }),
         span:Span{end,start}
     },
-    <start:@L> <name:Identifier> "!" LBRACE <stmts:Statment*> RBRACE <end:@R> => ASTStatment {
-        kind:ASTStatmentKind::MacroCall{
+    <start:@L> "@" <name:Identifier> LBRACE <stmts:TopLevelDeclaration*> RBRACE <end:@R> => ASTDeclaration {
+        kind:ASTDeclarationKind::MacroCall(MacroCallDecl{
             name, args:stmts
-        },
+        }),
+        span:Span{end,start}
+    }
+};
+MacroCallStatment:ASTStatment = {
+    <start:@L> "@" <name:Identifier> LPAREN <stmts:(<Statment> ";")*> RPAREN <end:@R> => ASTStatment {
+        kind:ASTStatmentKind::MacroCall(MacroCallStmt{
+            name, args:stmts
+        }),
+        span:Span{end,start}
+    },
+    <start:@L> "@" <name:Identifier> LBRACE <stmts:(<Statment> ";")*> RBRACE <end:@R> => ASTStatment {
+        kind:ASTStatmentKind::MacroCall(MacroCallStmt{
+            name, args:stmts
+        }),
         span:Span{end,start}
     }
 };
@@ -238,7 +254,8 @@ FunctionDeclaration:ASTDeclaration = {
 };
 TopLevelDeclaration:ASTDeclaration = {
     FunctionDeclaration,
-    ComponentDeclaration
+    ComponentDeclaration,
+    MacroCallDeclaration
 };
 
 pub Program: Vec<ASTDeclaration> = <value:TopLevelDeclaration*> => value;
