@@ -1,6 +1,10 @@
 use std::{path::PathBuf, process::Command};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    lalrpop::Configuration::new()
+        .always_use_colors()
+        .log_verbose()
+        .process_current_dir()?;
     let backend_source = PathBuf::from("./backend/src/main.zig");
     let out_dir = PathBuf::from(std::env::var("OUT_DIR").unwrap());
     let backend_name = "slynx_backend";
@@ -39,8 +43,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Optional: Re-run the build script if the Zig source changes
     println!("cargo:rerun-if-changed={}", backend_source.display());
 
-    lalrpop::Configuration::new()
-        .always_use_colors()
-        .log_verbose()
-        .process_current_dir()
+    Ok(())
 }
