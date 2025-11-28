@@ -1,5 +1,8 @@
-func main():Component {
+component H1 {
 	@js {
-		5;
-	};
+		5
+	}
+}
+func main():Component {
+	
 }

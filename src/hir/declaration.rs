@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{
     ast::{Operator, Span},
     hir::{HirId, types::HirType},

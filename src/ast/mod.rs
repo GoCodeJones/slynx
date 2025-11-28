@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 #[derive(Debug, Clone)]
 pub struct Span {
     pub start: usize,
@@ -51,6 +53,7 @@ pub struct ElementDeffinition {
 }
 #[derive(Debug)]
 pub enum ElementDeffinitionKind {
+    RawJs(Cow<'static, str>),
     MacroCall {
         name: String,
         args: MacroElementArgs,

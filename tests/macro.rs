@@ -5,7 +5,7 @@ use slynx::{
 };
 #[cfg(test)]
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::{io::Write, sync::Arc};
 
 fn generate_hir(ast: Vec<ASTDeclaration>) -> SlynxHir {
     let mut hir = SlynxHir::new();
@@ -41,4 +41,5 @@ fn test_macro() {
         panic!("At {}:{}", line, column);
     };
     println!("\n{hir:#?}");
+    std::io::stdout().flush().unwrap();
 }
