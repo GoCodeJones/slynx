@@ -9,18 +9,18 @@ impl Parser {
     ///Parses a declaration level macro with the provided `name` and `span`
     pub fn parse_macro(&mut self, name: String, span: Span) -> Result<ASTDeclaration, ParseError> {
         let initial = self.eat()?;
-        let mut args = Vec::new();
+
         if let TokenKind::RBrace | TokenKind::RParen = initial.kind {
             let req_paren = matches!(initial.kind, TokenKind::RParen);
             let decls = self.parse_declarations()?;
-            let mut tk = if req_paren {
+            let tk = if req_paren {
                 self.expect(&TokenKind::LParen)?
             } else {
                 self.expect(&TokenKind::RParen)?
             };
 
             Ok(ASTDeclaration {
-                kind: ASTDeclarationKind::MacroCall(MacroCallDecl { name, args }),
+                kind: ASTDeclarationKind::MacroCall(MacroCallDecl { name, args: decls }),
                 span: Span {
                     start: span.start,
                     end: tk.span.end,
