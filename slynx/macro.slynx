@@ -1,8 +1,9 @@
 component H1 {
-	@js {
-		5
+	js! {
+	    H1<abc> {
+		}
 	}
 }
 func main():Component {
-	
+
 }

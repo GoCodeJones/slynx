@@ -126,7 +126,6 @@ impl Lexer {
                 c if c.is_alphabetic() || c == '_' => {
                     let mut buffer = String::new();
                     let start = idx;
-                    idx += 1;
                     while idx < chars.len() && (chars[idx].is_alphanumeric() || chars[idx] == '_') {
                         buffer.push(chars[idx]);
                         idx += 1;

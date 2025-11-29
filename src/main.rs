@@ -5,16 +5,14 @@ pub mod intermediate;
 pub mod parser;
 use std::path::PathBuf;
 
-use clap::Parser;
-
-use lalrpop_util::lalrpop_mod;
-
 use crate::{
     checker::TypeChecker,
     compiler::Compiler,
     intermediate::IntermediateRepr,
+    parser::{Parser as SlynxParser, lexer::Lexer},
     //flattener::{FlattenedHir, Flattener},
 };
+use clap::Parser;
 
 #[derive(Debug, Parser)]
 struct Cli {
@@ -27,7 +25,7 @@ unsafe extern "C" {
     fn compile_code(hir: FlattenedHir);
 }*/
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let path = PathBuf::from(cli.target);
 
@@ -37,14 +35,12 @@ fn main() {
         .enumerate()
         .filter_map(|(idx, c)| if c == '\n' { Some(idx) } else { None })
         .collect::<Vec<usize>>();
-
-    let value = slynx::ProgramParser::new().parse(&file).unwrap();
+    let stream = Lexer::tokenize(&file);
+    let mut value = SlynxParser::new(stream);
+    let ast = value.parse_declarations()?;
 
     let mut hir = hir::SlynxHir::new();
-    match hir.generate(value) {
-        Ok(_) => {}
-        Err(e) => panic!("{e:#?}"),
-    };
+    hir.generate(ast)?;
     if let Err(e) = TypeChecker::check(&mut hir) {
         eprint!("Type Error: {:?}; ", e.kind);
         let line = match lines.binary_search(&e.span.start) {
@@ -60,4 +56,5 @@ fn main() {
     let mut compiler = Compiler::new();
     let out = compiler.compile(&intermediate);
     let _ = std::fs::write(path.with_extension("js"), out);
+    Ok(())
 }
