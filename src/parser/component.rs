@@ -1,7 +1,7 @@
 use crate::parser::{
     ast::{
         ASTDeclaration, ASTDeclarationKind, ElementDeffinition, ElementDeffinitionKind,
-        PropertyModifier, Span,
+        MacroElementArgs, PropertyModifier, Span,
     },
     error::ParseError,
     lexer::tokens::{Token, TokenKind},
@@ -106,11 +106,46 @@ impl Parser {
                         self.eat()?;
                         let expr = self.parse_expression(span);
                         span.end = self.expect(&TokenKind::SemiColon)?.span.end;
-                        Some(expr)
+                        Ok(ElementDeffinition {
+                            kind: ElementDeffinitionKind::Property {
+                                name: ident,
+                                modifier,
+                                ty: None,
+                                rhs: Some(expr),
+                            },
+                            span,
+                        })
                     }
                     _ => return Err(ParseError::UnexpectedToken(self.eat()?)),
                 }
             }
+            TokenKind::MacroName(name) => {
+                let Token {
+                    kind: TokenKind::MacroName(name),
+                    mut span,
+                } = self.eat()?
+                else {
+                    unreachable!();
+                };
+                self.expect(&TokenKind::LBrace)?;
+                let mut args = Vec::new();
+                loop {
+                    if let TokenKind::RBrace = self.peek()?.kind {
+                        span.end = self.eat()?.span.end;
+                        break;
+                    }
+                    let expr = self.parse_element_deffinition()?;
+                    args.push(expr);
+                }
+                Ok(ElementDeffinition {
+                    kind: ElementDeffinitionKind::MacroCall {
+                        name,
+                        args: MacroElementArgs::Deffinitions(args),
+                    },
+                    span,
+                })
+            }
+            _ => return Err(ParseError::UnexpectedToken(self.eat()?)),
         }
     }
     ///Parses a component declaration. This initializes on the 'component' keyword
