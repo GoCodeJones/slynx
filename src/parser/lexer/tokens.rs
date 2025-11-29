@@ -1,4 +1,4 @@
-use crate::ast::Span;
+use crate::parser::ast::Span;
 
 #[derive(Debug)]
 pub struct Token {

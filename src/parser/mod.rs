@@ -1,10 +1,12 @@
 pub mod ast;
+mod component;
 pub mod error;
 pub mod lexer;
 mod macros;
+mod types;
 
 use crate::parser::{
-    ast::{ASTDeclaration, Span},
+    ast::{ASTDeclaration, ASTDeclarationKind, MacroCallDecl, Span},
     error::ParseError,
     lexer::{
         TokenStream,
@@ -33,24 +35,35 @@ impl Parser {
             .ok_or(ParseError::UnexpectedEndOfInput)
     }
 
-    pub fn expect(&mut self, kind: TokenKind) -> Result<Token, ParseError> {
+    pub fn expect(&mut self, kind: &TokenKind) -> Result<Token, ParseError> {
         let token = self.eat()?;
-        if token.kind == kind {
+        if std::mem::discriminant(&token.kind) == std::mem::discriminant(kind) {
             Ok(token)
         } else {
             Err(ParseError::UnexpectedToken(token))
         }
     }
 
-    pub fn parse_func(&mut self, span: Span) -> Result<ASTDeclaration, ParseError> {}
+    pub fn parse_func(&mut self, span: Span) -> Result<ASTDeclaration, ParseError> {
+        Ok(ASTDeclaration {
+            kind: ASTDeclarationKind::MacroCall(MacroCallDecl {
+                name: String::new(),
+                args: Vec::new(),
+            }),
+            span: span,
+        })
+    }
 
-    pub fn parse_component(&mut self, span: Span) -> Result<ASTDeclaration, ParseError> {}
+    ///Parses a component declaration. This initializes on the 'component' keyword
+    pub fn parse_component(&mut self, span: Span) -> Result<ASTDeclaration, ParseError> {
+        let ty = self.parse_type()?;
+    }
 
     pub fn parse_declarations(&mut self) -> Result<Vec<ASTDeclaration>, ParseError> {
         let mut out = Vec::new();
         while let Ok(token) = self.peek() {
-            match token.kind {
-                TokenKind::MacroName(name) => {
+            match &token.kind {
+                TokenKind::MacroName(_) => {
                     let Token {
                         kind: TokenKind::MacroName(name),
                         span,
@@ -61,9 +74,7 @@ impl Parser {
                     out.push(self.parse_macro(name, span)?)
                 }
                 TokenKind::Component => {
-                    let Token { span, .. } = self.eat()? else {
-                        unreachable!();
-                    };
+                    let Token { span, .. } = self.eat()?;
                     out.push(self.parse_component(span)?)
                 }
                 TokenKind::Func => {

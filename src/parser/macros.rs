@@ -14,9 +14,9 @@ impl Parser {
             let req_paren = matches!(initial.kind, TokenKind::RParen);
             let decls = self.parse_declarations()?;
             let mut tk = if req_paren {
-                self.expect(TokenKind::LParen)?
+                self.expect(&TokenKind::LParen)?
             } else {
-                self.expect(TokenKind::RParen)?
+                self.expect(&TokenKind::RParen)?
             };
 
             Ok(ASTDeclaration {

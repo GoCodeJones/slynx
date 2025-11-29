@@ -1,7 +1,7 @@
 pub mod js;
 use std::fmt::Debug;
 
-use crate::ast::{ASTDeclaration, ASTStatment, ElementDeffinition, MacroElementArgs};
+use crate::parser::ast::{ASTDeclaration, ASTStatment, ElementDeffinition, MacroElementArgs};
 
 ///A trait to be applied to structs that implement macros that are executed on declaration level
 pub trait DeclarationMacro: 'static + Debug {

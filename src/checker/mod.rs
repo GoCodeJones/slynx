@@ -2,7 +2,6 @@ pub mod error;
 use std::{collections::HashMap, mem::discriminant};
 
 use crate::{
-    ast::Span,
     checker::error::{IncompatibleComponentReason, TypeError, TypeErrorKind},
     hir::{
         HirId, SlynxHir,
@@ -12,6 +11,7 @@ use crate::{
         },
         types::HirType,
     },
+    parser::ast::Span,
 };
 
 #[derive(Hash, PartialEq, Eq, Debug)]

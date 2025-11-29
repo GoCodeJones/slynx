@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use crate::{
-    ast::Operator,
     hir::HirId,
     intermediate::{
         IntermediateRepr,
@@ -9,6 +8,7 @@ use crate::{
         expr::IntermediateExpr,
         node::IntermediateInstruction,
     },
+    parser::ast::Operator,
 };
 
 pub struct Compiler {

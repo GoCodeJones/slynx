@@ -10,11 +10,6 @@ use std::{
 };
 
 use crate::{
-    ast::{
-        ASTDeclaration, ASTDeclarationKind, ASTExpression, ASTExpressionKind, ASTStatment,
-        ASTStatmentKind, ElementDeffinition, ElementDeffinitionKind, ElementValue,
-        GenericIdentifier, PropertyModifier, Span,
-    },
     hir::{
         declaration::{
             ElementValueDeclaration, HirDeclaration, HirDeclarationKind, HirExpression,
@@ -24,6 +19,12 @@ use crate::{
         macros::{DeclarationMacro, ElementMacro, StatmentMacro},
         scope::HIRScope,
         types::{HirType, HirValue, HirValueKind},
+    },
+    parser::ast::Operator,
+    parser::ast::{
+        ASTDeclaration, ASTDeclarationKind, ASTExpression, ASTExpressionKind, ASTStatment,
+        ASTStatmentKind, ElementDeffinition, ElementDeffinitionKind, ElementValue,
+        GenericIdentifier, PropertyModifier, Span,
     },
 };
 
@@ -271,7 +272,7 @@ impl SlynxHir {
     pub fn resolve_binary(
         &mut self,
         lhs: ASTExpression,
-        op: crate::ast::Operator,
+        op: Operator,
         rhs: ASTExpression,
         ty: Option<&HirType>,
     ) -> Result<HirExpression, HIRError> {

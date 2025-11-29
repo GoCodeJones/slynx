@@ -1,9 +1,9 @@
 use crate::{
-    ast::{GenericIdentifier, PropertyModifier},
     hir::{
         HirId,
         error::{HIRError, HIRErrorKind, InvalidTypeReason},
     },
+    parser::ast::{GenericIdentifier, PropertyModifier},
 };
 
 #[derive(Debug, Clone)]

@@ -1,4 +1,4 @@
-use crate::{ast::Operator, hir::HirId};
+use crate::{hir::HirId, parser::ast::Operator};
 
 #[derive(Debug, Clone)]
 pub enum IntermediateExpr {

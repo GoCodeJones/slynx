@@ -1,6 +1,6 @@
 use crate::{
-    ast::{ElementExpression, Span},
     hir::{HirId, declaration::HirExpression},
+    parser::ast::{ElementExpression, Span},
 };
 
 #[derive(Debug)]

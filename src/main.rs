@@ -1,4 +1,3 @@
-pub mod ast;
 pub mod checker;
 pub mod compiler;
 pub mod hir;
@@ -16,7 +15,6 @@ use crate::{
     intermediate::IntermediateRepr,
     //flattener::{FlattenedHir, Flattener},
 };
-lalrpop_mod!(pub slynx, "/grammar/slynx.rs");
 
 #[derive(Debug, Parser)]
 struct Cli {
