@@ -2,6 +2,7 @@ pub mod ast;
 mod component;
 pub mod error;
 mod expr;
+mod functions;
 pub mod lexer;
 mod macros;
 mod statment;
@@ -48,16 +49,6 @@ impl Parser {
         } else {
             Err(ParseError::UnexpectedToken(token))
         }
-    }
-
-    pub fn parse_func(&mut self, span: Span) -> Result<ASTDeclaration, ParseError> {
-        Ok(ASTDeclaration {
-            kind: ASTDeclarationKind::MacroCall(MacroCallDecl {
-                name: String::new(),
-                args: Vec::new(),
-            }),
-            span: span,
-        })
     }
 
     pub fn parse_declarations(&mut self) -> Result<Vec<ASTDeclaration>, ParseError> {

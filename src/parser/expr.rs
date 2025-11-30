@@ -1,15 +1,21 @@
 use crate::parser::{
     Parser,
-    ast::{ASTExpression, ASTExpressionKind, ElementExpression, ElementValue, Operator, Span},
+    ast::{
+        ASTExpression, ASTExpressionKind, ElementExpression, ElementValue, GenericIdentifier,
+        Operator, Span,
+    },
     error::ParseError,
     lexer::tokens::{Token, TokenKind},
 };
 
 impl Parser {
-    pub fn parse_element_expr(&mut self) -> Result<ElementExpression, ParseError> {
-        let ty = self.parse_type()?;
+    ///Parses an element expression but, starting from the LBrace, assuming the name of the element is the provided `name`
+    pub fn parse_element_expr_with_name(
+        &mut self,
+        name: GenericIdentifier,
+    ) -> Result<ElementExpression, ParseError> {
         let mut span = Span {
-            start: ty.span.start,
+            start: name.span.start,
             end: 0,
         };
         self.expect(&TokenKind::LBrace)?;
@@ -47,16 +53,42 @@ impl Parser {
             }
         }
         self.expect(&TokenKind::RBrace)?;
-        Ok(ElementExpression {
-            name: ty,
-            values,
-            span,
-        })
+        Ok(ElementExpression { name, values, span })
+    }
+    pub fn parse_element_expr(&mut self) -> Result<ElementExpression, ParseError> {
+        let ty = self.parse_type()?;
+        self.parse_element_expr_with_name(ty)
     }
 
     pub fn parse_primary(&mut self) -> Result<ASTExpression, ParseError> {
+        match self.peek()?.kind {
+            TokenKind::Identifier(_) => {
+                let current_kind = &self.peek_at(1)?.kind;
+
+                if matches!(current_kind, TokenKind::Lt) {
+                    let ty = self.parse_type()?;
+                    return if let TokenKind::LBrace = self.peek()?.kind {
+                        let element = self.parse_element_expr_with_name(ty)?;
+                        Ok(ASTExpression {
+                            span: element.span.clone(),
+                            kind: ASTExpressionKind::Element(element),
+                        })
+                    } else {
+                        Err(ParseError::UnexpectedToken(self.eat()?))
+                    };
+                } else if matches!(current_kind, TokenKind::LBrace) {
+                    let element = self.parse_element_expr()?;
+                    return Ok(ASTExpression {
+                        span: element.span.clone(),
+                        kind: ASTExpressionKind::Element(element),
+                    });
+                } else {
+                }
+            }
+            _ => {}
+        };
         let current = self.eat()?;
-        match current.kind {
+        match self.eat()?.kind {
             TokenKind::Float(f) => Ok(ASTExpression {
                 kind: ASTExpressionKind::FloatLiteral(f),
                 span: current.span,

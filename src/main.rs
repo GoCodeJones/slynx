@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 eprintln!("At line {line} errored: {e}");
                 std::process::exit(1);
             }
-            _ => panic!("{e}"),
+            _ => panic!("{e:?}"),
         },
     };
 

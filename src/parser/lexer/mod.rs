@@ -79,6 +79,10 @@ impl Lexer {
                     if chars[idx + 1] == '=' {
                         idx += 1;
                         Token::subeq(idx)
+                    } else if chars[idx + 1] == '>' {
+                        let out = Token::arrow(idx);
+                        idx += 1;
+                        out
                     } else {
                         Token::sub(idx)
                     }

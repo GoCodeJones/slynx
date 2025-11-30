@@ -27,6 +27,7 @@ pub enum TokenKind {
     StarEq,
     Slash,
     SlashEq,
+    Arrow,
     Comma,
     Colon,
     Float(f32),
@@ -257,6 +258,15 @@ impl Token {
         Self {
             kind: TokenKind::Component,
             span: Span { end, start },
+        }
+    }
+    pub fn arrow(start: usize) -> Self {
+        Self {
+            kind: TokenKind::Arrow,
+            span: Span {
+                start,
+                end: start + 1,
+            },
         }
     }
 }
