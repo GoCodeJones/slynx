@@ -9,7 +9,7 @@ use crate::{
     checker::TypeChecker,
     compiler::Compiler,
     intermediate::IntermediateRepr,
-    parser::{Parser as SlynxParser, lexer::Lexer},
+    parser::{Parser as SlynxParser, error::ParseError, lexer::Lexer},
     //flattener::{FlattenedHir, Flattener},
 };
 use clap::Parser;
@@ -37,7 +37,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .collect::<Vec<usize>>();
     let stream = Lexer::tokenize(&file);
     let mut value = SlynxParser::new(stream);
-    let ast = value.parse_declarations()?;
+    let ast = match value.parse_declarations() {
+        Ok(val) => val,
+        Err(e) => match e {
+            ParseError::UnexpectedToken(ref tk) => {
+                let line = match lines.binary_search(&tk.span.start) {
+                    Ok(ok) => ok,
+                    Err(e) => e + 1,
+                };
+                eprintln!("At line {line} errored: {e}");
+                std::process::exit(1);
+            }
+            _ => panic!("{e}"),
+        },
+    };
 
     let mut hir = hir::SlynxHir::new();
     hir.generate(ast)?;

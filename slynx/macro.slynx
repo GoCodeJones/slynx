@@ -1,7 +1,6 @@
 component H1 {
 	js! {
-	    H1<abc> {
-		}
+	    H1<abc> {}
 	}
 }
 func main():Component {

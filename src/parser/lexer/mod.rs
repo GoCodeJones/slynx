@@ -6,6 +6,7 @@ use crate::parser::{
 };
 
 pub mod tokens;
+#[derive(Debug)]
 ///A stream of tokens to be used when parsing the content
 pub struct TokenStream {
     pub stream: VecDeque<Token>,
@@ -130,9 +131,11 @@ impl Lexer {
                         buffer.push(chars[idx]);
                         idx += 1;
                     }
+
                     if chars[idx] == '!' {
                         Token::macro_name(&buffer, start, idx)
                     } else {
+                        idx -= 1;
                         let span = Span { start, end: idx };
                         match buffer.as_str() {
                             "component" => Token {

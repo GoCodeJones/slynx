@@ -46,7 +46,7 @@ impl Parser {
     ///So something like `pub prop` is understood as a deffinition, so this will be false. The same with `H1<f32> {}` but not `H1<f32>::abc`
     fn check_for_statment(&self) -> Result<bool, ParseError> {
         let out = match self.peek()?.kind {
-            TokenKind::Prop | TokenKind::Pub => true,
+            TokenKind::Prop | TokenKind::Pub => false,
             TokenKind::Identifier(_) => match self.peek_at(1)?.kind {
                 TokenKind::Lt => {
                     //advance as much as <> needed
@@ -57,11 +57,12 @@ impl Parser {
                             match self.peek_at(idx)?.kind {
                                 TokenKind::Gt => gt_amount -= 1,
                                 TokenKind::Lt => gt_amount += 1,
-                                _ => break,
+                                _ => {}
                             }
                             idx += 1
                         }
                     }
+
                     match self.peek_at(idx)?.kind {
                         TokenKind::LBrace => false,
                         _ => true,
@@ -186,17 +187,19 @@ impl Parser {
             TokenKind::MacroName(_) => {
                 let Token {
                     kind: TokenKind::MacroName(name),
-                    span,
+                    mut span,
                 } = self.eat()?
                 else {
                     unreachable!();
                 };
                 self.expect(&TokenKind::LBrace)?;
                 let next_is_statment = self.check_for_statment()?;
+
                 if next_is_statment {
                     let mut args = Vec::new();
                     loop {
                         if self.peek()?.kind == TokenKind::RBrace {
+                            span.end = self.eat()?.span.end;
                             break;
                         }
                         args.push(self.parse_statment()?);
@@ -204,7 +207,7 @@ impl Parser {
                     Ok(ElementDeffinition {
                         kind: ElementDeffinitionKind::MacroCall {
                             name,
-                            args: MacroElementArgs::Deffinitions(args),
+                            args: MacroElementArgs::Statments(args),
                         },
                         span,
                     })
@@ -212,6 +215,7 @@ impl Parser {
                     let mut args = Vec::new();
                     loop {
                         if self.peek()?.kind == TokenKind::RBrace {
+                            span.end = self.eat()?.span.end;
                             break;
                         }
                         args.push(self.parse_element_deffinition()?);

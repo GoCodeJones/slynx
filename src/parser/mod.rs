@@ -1,8 +1,10 @@
 pub mod ast;
 mod component;
 pub mod error;
+mod expr;
 pub mod lexer;
 mod macros;
+mod statment;
 mod types;
 
 use crate::parser::{
@@ -28,11 +30,15 @@ impl Parser {
         self.stream.next().ok_or(ParseError::UnexpectedEndOfInput)
     }
 
-    pub fn peek(&self) -> Result<&Token, ParseError> {
+    pub fn peek_at(&self, idx: usize) -> Result<&Token, ParseError> {
         self.stream
             .stream
-            .get(0)
+            .get(idx)
             .ok_or(ParseError::UnexpectedEndOfInput)
+    }
+
+    pub fn peek(&self) -> Result<&Token, ParseError> {
+        self.peek_at(0)
     }
 
     pub fn expect(&mut self, kind: &TokenKind) -> Result<Token, ParseError> {
