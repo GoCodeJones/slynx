@@ -113,15 +113,15 @@ impl Lexer {
                 c if c.is_ascii_digit() => {
                     let mut buffer = String::new();
                     let start = idx;
-                    idx += 1;
                     let mut float_value = false;
                     while idx < chars.len() && (chars[idx].is_ascii_digit() || chars[idx] == '.') {
                         if chars[idx] == '.' {
                             float_value = true;
                         }
+                        buffer.push(chars[idx]);
+                        idx += 1;
                     }
-                    buffer.push(c);
-                    idx += 1;
+                    idx -= 1;
                     if float_value {
                         Token::float(buffer.parse::<f32>().unwrap(), start, idx)
                     } else {

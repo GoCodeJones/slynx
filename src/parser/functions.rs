@@ -50,9 +50,7 @@ impl Parser {
         //func main(arg:T):Q ->/{}
         match current.kind {
             TokenKind::Arrow => {
-                println!("{:?}", self.stream);
                 let expr = self.parse_expression()?;
-
                 let end = self.expect(&TokenKind::SemiColon)?.span.end;
                 Ok(ASTDeclaration {
                     span: Span {

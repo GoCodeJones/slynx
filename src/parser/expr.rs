@@ -88,7 +88,7 @@ impl Parser {
             _ => {}
         };
         let current = self.eat()?;
-        match self.eat()?.kind {
+        match current.kind {
             TokenKind::Float(f) => Ok(ASTExpression {
                 kind: ASTExpressionKind::FloatLiteral(f),
                 span: current.span,
