@@ -90,7 +90,7 @@ impl Compiler {
         ir: &IntermediateRepr,
     ) -> String {
         match expr {
-            IntermediateExpr::StringLiteral(handle) => ir.strings[handle].to_string(),
+            IntermediateExpr::StringLiteral(handle) => format!("\"{}\"", &ir.strings[handle]),
             IntermediateExpr::Int(int) => int.to_string(),
             IntermediateExpr::Float(float) => float.to_string(),
 
