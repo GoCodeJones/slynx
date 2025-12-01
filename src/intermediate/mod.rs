@@ -1,6 +1,7 @@
 pub mod context;
 pub mod expr;
 pub mod node;
+pub mod string;
 pub mod types;
 use std::collections::HashMap;
 
@@ -16,6 +17,7 @@ use crate::{
     intermediate::{
         context::{IntermediateContext, IntermediateContextType, IntermediateProperty},
         expr::IntermediateExpr,
+        string::StringPool,
         types::IntermediateType,
     },
 };
@@ -31,6 +33,7 @@ pub struct IntermediateRepr {
     pub func_mapping: HashMap<HirId, usize>,
     pub component_mapping: HashMap<HirId, usize>,
     pub types_mapping: HashMap<HirId, usize>,
+    pub strings: StringPool,
 }
 
 impl IntermediateRepr {
@@ -123,6 +126,7 @@ impl IntermediateRepr {
     ///Generates a new expression and returns it's id on the current context
     fn generate_expr(&mut self, expr: HirExpression) -> usize {
         match expr.kind {
+            HirExpressionKind::StringLiteral(s) => {}
             HirExpressionKind::Int(int) => self
                 .active_context()
                 .insert_expr(IntermediateExpr::Int(int)),
