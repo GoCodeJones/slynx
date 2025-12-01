@@ -192,6 +192,7 @@ impl Compiler {
         let IntermediateContextType::Element {
             properties,
             children,
+            js,
         } = &ctx.ty
         else {
             unreachable!();
@@ -207,9 +208,14 @@ impl Compiler {
             let compiled = self.compile_property(prop, index as u32, ir, ctx);
             out.push_str(&compiled);
         }
+
         out.pop();
         out.push_str("}\n");
 
+        for js in js.iter() {
+            out.push_str(&self.indented_string(&js));
+            out.push('\n');
+        }
         for (idx, child) in children.iter().enumerate() {
             let child = self.compile_child(*child, idx as u32, ctx, ir);
             let child = self.indented_string(&child);
@@ -238,6 +244,7 @@ impl Compiler {
             IntermediateInstruction::Ret(idx) => {
                 format!("return {}", self.compile_expression(&ctx.exprs[*idx], ctx))
             }
+            IntermediateInstruction::Js(js) => js.to_string(),
         }
     }
 
@@ -247,7 +254,7 @@ impl Compiler {
         name: &str,
         instructions: &[IntermediateInstruction],
         ctx: &IntermediateContext,
-        ir: &IntermediateRepr,
+        _: &IntermediateRepr,
     ) -> String {
         let args = {
             let mut out = String::new();
@@ -288,7 +295,6 @@ impl Compiler {
             };
             out.push_str(&content);
         }
-        println!("{out}");
         out
     }
 }

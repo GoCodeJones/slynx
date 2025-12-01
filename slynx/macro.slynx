@@ -1,5 +1,5 @@
 component H1 {
-    pub prop text;
+    pub prop text: int = 5;
 	js! {
 
     }

@@ -57,6 +57,7 @@ impl TypeChecker {
                         unreachable!("Element declaration should have type component");
                     };
                     match prop {
+                        ElementValueDeclaration::Js(_) => {}
                         ElementValueDeclaration::Property {
                             index, value, span, ..
                         } => {
@@ -212,6 +213,7 @@ impl TypeChecker {
         };
         for value in values {
             match value {
+                ElementValueDeclaration::Js(_) => {}
                 ElementValueDeclaration::Property {
                     index, value, span, ..
                 } => {
@@ -466,6 +468,7 @@ impl TypeChecker {
                                 props[*index].2 = self.unify(&props[*index].2, &ty, &span)?;
                             }
                         }
+                        ElementValueDeclaration::Js(_) => {} //since this shit is raw js, there's no way to know anything about it
                         ElementValueDeclaration::Child { name, values, span } => {
                             let ty = self
                                 .types

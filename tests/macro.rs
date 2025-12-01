@@ -1,8 +1,8 @@
 use slynx::{
     checker::TypeChecker,
+    compile_code,
     hir::{SlynxHir, macros::js::JSMacro},
-    parser::ast::ASTDeclaration,
-    parser::{Parser, lexer::Lexer},
+    parser::{Parser, ast::ASTDeclaration, lexer::Lexer},
 };
 #[cfg(test)]
 use std::path::PathBuf;
@@ -21,24 +21,6 @@ fn generate_hir(ast: Vec<ASTDeclaration>) -> SlynxHir {
 #[test]
 fn test_macro() {
     let path = PathBuf::from("./slynx/macro.slynx");
-
-    let file = std::fs::read_to_string(&path).unwrap();
-    let stream = Lexer::tokenize(&file);
-    let value = Parser::new(Lexer::tokenize(&file))
-        .parse_declarations()
-        .unwrap();
-
-    //println!("{value:#?}");
-    let mut hir = generate_hir(value);
-    if let Err(e) = TypeChecker::check(&mut hir) {
-        eprint!("Type Error: {:?}; ", e.kind);
-        let line = match stream.new_lines.binary_search(&e.span.start) {
-            Ok(idx) => idx,
-            Err(idx) => idx + 1,
-        };
-        let column = e.span.end - e.span.start;
-        panic!("At {}:{}", line, column);
-    };
-    println!("\n{hir:#?}");
+    compile_code(path);
     std::io::stdout().flush().unwrap();
 }

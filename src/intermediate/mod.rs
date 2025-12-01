@@ -222,6 +222,7 @@ impl IntermediateRepr {
                     self.active_context()
                         .insert_property(IntermediateProperty { id, default_value });
                 }
+                ElementValueDeclaration::Js(js) => self.active_context().insert_js(js),
                 ElementValueDeclaration::Child { name, values, .. } => {
                     self.generate_child(name, values);
                 }

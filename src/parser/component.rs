@@ -127,6 +127,7 @@ impl Parser {
                         },
                     });
                 }
+
                 match self.peek()?.kind {
                     TokenKind::SemiColon => {
                         span.end = self.eat()?.span.end;
@@ -140,9 +141,11 @@ impl Parser {
                             span,
                         })
                     }
+
                     TokenKind::Colon => {
                         self.eat()?;
                         let ty = self.parse_type()?;
+
                         let curr = self.eat()?;
                         let rhs = match curr.kind {
                             TokenKind::SemiColon => {
@@ -150,8 +153,8 @@ impl Parser {
                                 None
                             }
                             TokenKind::Eq => {
-                                self.eat()?;
                                 let expr = self.parse_expression()?;
+
                                 span.end = self.expect(&TokenKind::SemiColon)?.span.end;
                                 Some(expr)
                             }
