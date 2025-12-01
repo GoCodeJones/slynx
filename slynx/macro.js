@@ -1,5 +1,5 @@
-function component1(A){
-  const out = {prop0:A??5}
+function component1(param0 = 5){
+  const out = {prop0:param0}
   console.log('Hello world')
   return out;
 }

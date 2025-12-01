@@ -28,8 +28,8 @@ impl Compiler {
     }
 
     #[inline]
-    fn get_param(index: u32) -> char {
-        unsafe { char::from_u32_unchecked(65 + index) }
+    fn get_param(index: usize) -> String {
+        format!("param{index}")
     }
 
     fn get_prop_name(index: u32) -> String {
@@ -41,12 +41,21 @@ impl Compiler {
     }
 
     ///Generates the syntax for the function creation for the next component and registers it on the names map
-    fn next_component(&mut self, args_len: u32, id: HirId) -> String {
+    fn next_component(
+        &mut self,
+        ctx: &IntermediateContext,
+        props: &[IntermediateProperty],
+        id: HirId,
+    ) -> String {
         let component_name = self.next_component_name();
         let mut func = format!("function {}(", component_name);
         self.names.insert(id, component_name);
-        for i in 0..args_len {
-            func.push(Self::get_param(i));
+        for i in 0..props.len() {
+            func.push_str(&Self::get_param(i));
+            if let Some(default) = props[i].default_value {
+                let default = self.compile_expression(&ctx.exprs[default], ctx);
+                func.push_str(&format!(" = {}", default));
+            }
             func.push(',');
         }
         func.pop();
@@ -139,16 +148,9 @@ impl Compiler {
     ) -> String {
         let prop_value = Self::get_prop_name(index);
         self.names.insert(prop.id, prop_value.clone());
-        let param_name = Self::get_param(index);
+        let param_name = Self::get_param(index as usize);
 
-        if let Some(prop) = prop.default_value {
-            format!(
-                "{prop_value}:{param_name}??{},",
-                self.compile_expression(&ctx.exprs[prop], ctx)
-            )
-        } else {
-            format!("{prop_value}:{param_name},")
-        }
+        format!("{prop_value}:{param_name},")
     }
 
     ///Compiles the given `child_expr_index`, asserting that, the expression on the provided parameter, is the index for an element.
@@ -197,7 +199,7 @@ impl Compiler {
         else {
             unreachable!();
         };
-        let next = self.next_component(properties.len() as u32, ctx.id);
+        let next = self.next_component(ctx, properties, ctx.id);
         let mut out = self.indented_string(&next);
         self.increase_indentation();
         {

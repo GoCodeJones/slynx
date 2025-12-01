@@ -1,7 +1,8 @@
 component H1 {
     pub prop text: int = 5;
 	js! {
-
+	    "out.element = document.createElement("h1");
+		out.element.textContent = param0;"
     }
 }
 func main():Component -> H1 {};
