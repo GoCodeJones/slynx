@@ -38,12 +38,13 @@ impl StringPool {
     ///Inserts the provided `string` in this pool and returns it's handle to be accessed.
     ///The string is immutable
     pub fn insert_string(&mut self, str: &str) -> StringHandle {
+        let bytes = str.as_bytes();
         let handle = StringHandle {
-            index: self.len(),
-            len: str.len(),
-            last_index: self.len() + str.len() - 1,
+            index: self.bytesize(),
+            len: bytes.len(),
+            last_index: self.bytesize() + bytes.len() - 1,
         };
-        self.pool.extend_from_slice(str.as_bytes());
+        self.pool.extend_from_slice(bytes);
         self.len += 1;
         handle
     }
@@ -52,13 +53,13 @@ impl StringPool {
 impl Index<StringHandle> for StringPool {
     type Output = str;
     fn index(&self, index: StringHandle) -> &Self::Output {
-        unsafe { str::from_utf8_unchecked(&self.pool[index.index..index.len]) }
+        unsafe { str::from_utf8_unchecked(&self.pool[index.index..index.len + index.index]) }
     }
 }
 impl Index<&StringHandle> for StringPool {
     type Output = str;
     fn index(&self, index: &StringHandle) -> &Self::Output {
-        unsafe { str::from_utf8_unchecked(&self.pool[index.index..index.len]) }
+        unsafe { str::from_utf8_unchecked(&self.pool[index.index..index.len + index.index]) };
     }
 }
 impl StringHandle {
