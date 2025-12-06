@@ -157,7 +157,7 @@ impl SlynxContext {
             Ok(v) => v,
             Err(e) => {
                 return match e {
-                    ParseError::UnexpectedToken(ref token) => {
+                    ParseError::UnexpectedToken(ref token, _) => {
                         let (line, column, src) =
                             self.get_line_info(&self.entry_point, token.span.start);
                         Err(SlynxError {
