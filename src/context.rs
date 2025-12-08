@@ -19,6 +19,7 @@ use crate::{
 pub enum SlynxErrorType {
     Lexer,
     Parser,
+    Hir,
     Type,
     Compilation,
 }
@@ -42,6 +43,7 @@ impl std::fmt::Display for SlynxError {
         let type_error = match self.ty {
             SlynxErrorType::Lexer => "Lexing Error",
             SlynxErrorType::Parser => "Parsing Error",
+            SlynxErrorType::Hir => "Name Resolution Error",
             SlynxErrorType::Compilation => "Compilation Error",
             SlynxErrorType::Type => "Type Checking Error",
         };
@@ -212,12 +214,11 @@ impl SlynxContext {
 
         if let Err(e) = hir.generate(decls) {
             let (line, column, src) = self.get_line_info(&self.entry_point, e.span.start);
-            println!("{column} {}", e.span.end - e.span.start);
             return Err(SlynxError {
                 line,
                 column_start: column,
                 column_end: column + (e.span.end - e.span.start),
-                ty: SlynxErrorType::Type,
+                ty: SlynxErrorType::Hir,
                 message: e.to_string(),
                 file: self.entry_point.to_string_lossy().to_string(),
                 source: src.to_string(),

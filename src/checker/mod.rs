@@ -159,7 +159,10 @@ impl TypeChecker {
         ty: &HirType,
         span: &Span,
     ) -> Result<HirType, TypeError> {
-        let resolved_ref = self.resolve(&HirType::Reference { rf, generics: None })?;
+        let resolved_ref = self.resolve(&HirType::Reference {
+            rf,
+            generics: Vec::new(),
+        })?;
         if !matches!(resolved_ref, HirType::Reference { .. }) {
             return self.unify(&resolved_ref, ty, span);
         }
@@ -168,7 +171,7 @@ impl TypeChecker {
         {
             return Ok(HirType::Reference {
                 rf: *refe,
-                generics: None,
+                generics: Vec::new(),
             });
         }
         if self.reccursive_ty(rf, &ty) {
@@ -180,7 +183,7 @@ impl TypeChecker {
         self.substitute(rf, ty.clone());
         Ok(HirType::Reference {
             rf: rf,
-            generics: None,
+            generics: Vec::new(),
         })
     }
 
@@ -463,7 +466,7 @@ impl TypeChecker {
                 };
                 expr.ty = HirType::Reference {
                     rf: *name,
-                    generics: None,
+                    generics: Vec::new(),
                 };
                 for val in values {
                     match val {

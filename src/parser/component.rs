@@ -109,9 +109,9 @@ impl Parser {
                             name: ident,
                             modifier,
                             ty: Some(GenericIdentifier {
-                                identifier: "Vec".to_string(),
+                                identifier: "Vector".to_string(),
                                 generic: Some(vec![GenericIdentifier {
-                                    identifier: "Element".to_string(),
+                                    identifier: "Component".to_string(),
                                     generic: None,
                                     span: Span {
                                         end: end.end,

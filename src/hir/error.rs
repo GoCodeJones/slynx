@@ -1,5 +1,5 @@
 use crate::{
-    hir::{HirId, declaration::HirExpression},
+    hir::declaration::HirExpression,
     parser::ast::{ElementExpression, Span},
 };
 
@@ -13,6 +13,7 @@ pub struct HIRError {
 pub enum HIRErrorKind {
     TypeNotRecognized(String),
     NameNotRecognized(String),
+    NameAlreadyDefined(String),
     InvalidBinaryExpression {
         lhs: HirExpression,
         rhs: HirExpression,
@@ -33,7 +34,9 @@ impl std::fmt::Display for HIRError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let out = match &self.kind {
             HIRErrorKind::NameNotRecognized(name) => {
-                format!("Name '{name}' was not defined")
+                format!(
+                    "The name '{name}' is not recognized. Check if it exists or you wrote some typo"
+                )
             }
             HIRErrorKind::TypeNotRecognized(name) => {
                 format!("Type with name '{name}' is was not defined previously")
@@ -49,6 +52,9 @@ impl std::fmt::Display for HIRError {
             }
             HIRErrorKind::InvalidType { ty, reason } => {
                 format!("Invalid type '{ty}' because it's {reason}")
+            }
+            HIRErrorKind::NameAlreadyDefined(name) => {
+                format!("The name '{name}' was already defined before. Use a different name")
             }
         };
         write!(f, "{out}")
