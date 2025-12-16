@@ -52,8 +52,18 @@ pub struct ASTDeclaration {
 }
 
 #[derive(Debug)]
+pub struct ObjectField {
+    pub visibility: PropertyModifier,
+    pub name: TypedName
+}
+
+#[derive(Debug)]
 pub enum ASTDeclarationKind {
     MacroCall(MacroCallDecl),
+    ObjectDeclaration {
+        name: GenericIdentifier,
+        fields: Vec<ObjectField>
+    },
     ElementDeclaration {
         name: GenericIdentifier,
         deffinitions: Vec<ElementDeffinition>,
