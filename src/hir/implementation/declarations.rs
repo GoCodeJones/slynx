@@ -1,4 +1,4 @@
-use crate::{hir::{HirId, SlynxHir, declaration::ElementValueDeclaration, error::HIRError, types::{HirType, HirValue, HirValueKind}}, parser::ast::{ElementDeffinition, ElementDeffinitionKind}};
+use crate::{hir::{HirId, SlynxHir, declaration::ElementValueDeclaration, error::HIRError, types::{HirType}}, parser::ast::{ElementDeffinition, ElementDeffinitionKind}};
 
 impl SlynxHir {
     pub fn resolve_component_defs(
@@ -32,13 +32,9 @@ impl SlynxHir {
                         },
                         span: def.span,
                     });
-                    self.last_scope().insert_named_value(
+                    self.last_scope().insert_name(
                         id,
                         name,
-                        HirValue {
-                            ty,
-                            kind: HirValueKind::Property { modifier },
-                        },
                     );
                     prop_idx += 1;
                 }

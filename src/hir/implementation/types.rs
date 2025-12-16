@@ -1,12 +1,12 @@
-use crate::{hir::{ HirId, SlynxHir, error::{HIRError, HIRErrorKind}, types::{HirType, HirValue}}, parser::ast::{GenericIdentifier, Span}};
+use crate::{hir::{ HirId, SlynxHir, error::{HIRError, HIRErrorKind}, types::HirType, }, parser::ast::{GenericIdentifier, Span}};
 
 impl SlynxHir {
     
     ///Creates an hir id for the provided `value` and `name` on the current scope
-    pub fn create_hirid_for(&mut self, name: String, value: HirValue, ty: HirType) -> HirId {
+    pub fn create_hirid_for(&mut self, name: String, ty: HirType) -> HirId {
         let id = HirId::new();
         self.names.insert(name.clone(), id);
-        self.last_scope().insert_named_value(id, name, value);
+        self.last_scope().insert_name(id, name);
         self.types.insert(id, ty);
         id
     }

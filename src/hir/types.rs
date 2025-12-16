@@ -100,10 +100,3 @@ pub enum HirValueKind {
     Function { modifier: PropertyModifier },
     Component { modifier: PropertyModifier },
 }
-
-///The representation of a compile or runtime value on the slynx. This can be either a variable, a property or a function
-#[derive(Debug)]
-pub struct HirValue {
-    pub kind: HirValueKind,
-    pub ty: HirType,
-}

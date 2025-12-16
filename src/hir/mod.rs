@@ -7,24 +7,23 @@ mod scope;
 pub mod types;
 use std::{
     collections::HashMap,
-    mem::discriminant,
+
     sync::{Arc, atomic::AtomicU64},
 };
 
 use crate::{
     hir::{
         declaration::{
-            ElementValueDeclaration, HirDeclaration, HirDeclarationKind, HirExpression,
-            HirExpressionKind, HirStatment, HirStatmentKind,
+            ElementValueDeclaration, HirDeclaration, HirDeclarationKind, 
+             HirStatment, HirStatmentKind,
         },
         error::{HIRError, HIRErrorKind},
         macros::{DeclarationMacro, ElementMacro, StatmentMacro},
         scope::HIRScope,
-        types::{HirType, HirValue, HirValueKind},
+        types::{HirType, HirValueKind},
     },
-    parser::ast::Operator,
     parser::ast::{
-        ASTDeclaration, ASTDeclarationKind, ASTExpression, ASTExpressionKind, ASTStatment,
+        ASTDeclaration, ASTDeclarationKind,ASTStatment,
         ASTStatmentKind, ElementDeffinition, ElementDeffinitionKind, ElementValue,
         PropertyModifier, Span,
     },
@@ -168,7 +167,7 @@ impl SlynxHir {
         &mut self,
         name: &str,
         span: &Span,
-    ) -> Result<(HirId, &HirValue), HIRError> {
+    ) -> Result<HirId, HIRError> {
         let mut idx = self.scopes.len() - 1;
 
         while idx != 0 {
@@ -178,11 +177,7 @@ impl SlynxHir {
                 idx -= 1;
                 continue;
             };
-            let Ok(info) = scope.retrieve_value(*id, span) else {
-                idx -= 1;
-                continue;
-            };
-            return Ok((*id, info));
+            return Ok(*id);
         }
         Err(HIRError {
             kind: HIRErrorKind::NameNotRecognized(name.to_string()),
@@ -298,7 +293,9 @@ impl SlynxHir {
     ///Hoist the provided `ast` declaration, with so no errors of undefined values because declared later may occurr
     fn hoist(&mut self, ast: &ASTDeclaration) -> Result<(), HIRError> {
         match &ast.kind {
-            ASTDeclarationKind::ObjectDeclaration { name, fields } => {}
+            ASTDeclarationKind::ObjectDeclaration { name, fields } => {
+                
+            }
             ASTDeclarationKind::MacroCall(..) => {}
             ASTDeclarationKind::FuncDeclaration {
                 name,
@@ -323,12 +320,7 @@ impl SlynxHir {
 
                 self.create_hirid_for(
                     name.to_string(), //add suport for generic identifier
-                    HirValue {
-                        kind: HirValueKind::Function {
-                            modifier: PropertyModifier::Private,
-                        },
-                        ty: func_ty.clone(),
-                    },
+                    
                     func_ty,
                 );
             }
@@ -360,12 +352,6 @@ impl SlynxHir {
                 };
                 self.create_hirid_for(
                     name.to_string(), //add support for generic identifier
-                    HirValue {
-                        kind: HirValueKind::Component {
-                            modifier: PropertyModifier::Private,
-                        },
-                        ty: HirType::GenericComponent,
-                    },
                     HirType::Component { props },
                 );
             }
@@ -387,15 +373,10 @@ impl SlynxHir {
                 self.enter_scope();
                 for arg in args {
                     let id = HirId::new();
-                    let ty = self.retrieve_type_of_name(&arg.kind, &arg.kind.span)?;
-                    self.last_scope().insert_named_value(
+                    self.last_scope().insert_name(
                         id,
-                        arg.name,
-                        HirValue {
-                            kind: HirValueKind::Variable,
-                            ty,
-                        },
-                    )
+                        arg.name   
+                    );
                 }
                 let statments = if let Some(last) = body.pop() {
                     let mut statments = Vec::with_capacity(body.len());

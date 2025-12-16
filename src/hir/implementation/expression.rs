@@ -18,7 +18,7 @@ impl SlynxHir {
                 span: expr.span,
             }),
             ASTExpressionKind::Identifier(name) => {
-                let (id, _) = self.retrieve_information_of_scoped(&name, &expr.span)?;
+                let id = self.retrieve_information_of_scoped(&name, &expr.span)?;
                 Ok(HirExpression {
                     kind: HirExpressionKind::Identifier(id),
                     id: HirId::new(),
