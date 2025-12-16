@@ -1,30 +1,28 @@
-mod implementation;
 pub mod declaration;
 pub mod error;
+mod implementation;
 pub mod macros;
 mod scope;
 pub mod types;
 use std::{
     collections::HashMap,
-
     sync::{Arc, atomic::AtomicU64},
 };
 
 use crate::{
     hir::{
         declaration::{
-            ElementValueDeclaration, HirDeclaration, HirDeclarationKind, 
-             HirStatment, HirStatmentKind,
+            ElementValueDeclaration, HirDeclaration, HirDeclarationKind, HirStatment,
+            HirStatmentKind,
         },
         error::{HIRError, HIRErrorKind},
         macros::{DeclarationMacro, ElementMacro, StatmentMacro},
         scope::HIRScope,
-        types::{HirType},
+        types::HirType,
     },
     parser::ast::{
-        ASTDeclaration, ASTDeclarationKind,ASTStatment,
-        ASTStatmentKind, ElementDeffinition, ElementDeffinitionKind, ElementValue,
-        PropertyModifier, Span,
+        ASTDeclaration, ASTDeclarationKind, ASTStatment, ASTStatmentKind, ElementDeffinition,
+        ElementDeffinitionKind, ElementValue, PropertyModifier, Span,
     },
 };
 
@@ -206,9 +204,8 @@ impl SlynxHir {
     fn last_scope(&mut self) -> &mut HIRScope {
         let idx = self.scopes.len() - 1;
         &mut self.scopes[idx]
+    }
 
-    } 
-    
     ///Resolves the provided values on a element. The `ty`is the type of the component we are resolving it
     fn resolve_element_values(
         &mut self,
@@ -286,21 +283,21 @@ impl SlynxHir {
         }
         Ok(out)
     }
-    
-    
-
     ///Hoist the provided `ast` declaration, with so no errors of undefined values because declared later may occurr
     fn hoist(&mut self, ast: &ASTDeclaration) -> Result<(), HIRError> {
         match &ast.kind {
+            ASTDeclarationKind::ObjectDeclaration { name, fields } => {}
             ASTDeclarationKind::MacroCall(..) => {}
-            ASTDeclarationKind::ObjectDeclaration { name, fields } => self.hoist_object(name, fields)?, 
-            
+            ASTDeclarationKind::ObjectDeclaration { name, fields } => {
+                self.hoist_object(name, fields)?
+            }
+
             ASTDeclarationKind::FuncDeclaration {
                 name,
                 args,
                 return_type,
                 ..
-            } => self.hoist_function(name,args, return_type)?,
+            } => self.hoist_function(name, args, return_type)?,
             ASTDeclarationKind::ElementDeclaration {
                 name, deffinitions, ..
             } => {
@@ -330,7 +327,6 @@ impl SlynxHir {
                 self.create_hirid_for(
                     name.to_string(), //add support for generic identifier
                     HirType::Component { props },
-                    &ast.span,
                 )?;
             }
         }
@@ -339,7 +335,9 @@ impl SlynxHir {
     fn resolve(&mut self, ast: ASTDeclaration) -> Result<(), HIRError> {
         match ast.kind {
             ASTDeclarationKind::MacroCall(..) => {}
-            ASTDeclarationKind::ObjectDeclaration { name, fields } => self.resolve_object(name, fields)?,
+            ASTDeclarationKind::ObjectDeclaration { name, fields } => {
+                self.resolve_object(name, fields)?
+            }
             ASTDeclarationKind::FuncDeclaration {
                 name,
                 args,
@@ -351,10 +349,7 @@ impl SlynxHir {
                 self.enter_scope();
                 for arg in args {
                     let id = HirId::new();
-                    self.last_scope().insert_name(
-                        id,
-                        arg.name   
-                    );
+                    self.last_scope().insert_name(id, arg.name);
                 }
                 let statments = if let Some(last) = body.pop() {
                     let mut statments = Vec::with_capacity(body.len());

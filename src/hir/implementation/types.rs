@@ -1,8 +1,15 @@
-use crate::{hir::{ HirId, SlynxHir, error::{HIRError, HIRErrorKind}, types::HirType, }, parser::ast::{GenericIdentifier, Span}};
+use crate::{
+    hir::{
+        HirId, SlynxHir,
+        error::{HIRError, HIRErrorKind},
+        types::{HirType, HirValue},
+    },
+    parser::ast::{GenericIdentifier, Span},
+};
 
 impl SlynxHir {
-    
     ///Creates an hir id for the provided `value` and `name` on the current scope
+
     pub fn create_hirid_for(&mut self, name: String, ty: HirType) -> HirId {
         let id = HirId::new();
         self.names.insert(name.clone(), id);
@@ -48,7 +55,7 @@ impl SlynxHir {
                 span: span.clone(),
             })
         }
-    }    
+    }
     ///Retrieves the type of the provided `name` but in the global scope. The difference of a 'named' to a 'name' is that this function
     ///tries to the the provided `name` as some identifier to something, and the name version does so after checking if the provided name itself
     ///is a type
@@ -63,4 +70,5 @@ impl SlynxHir {
                 span: span.clone(),
             })
         }
-    }}
+    }
+}
