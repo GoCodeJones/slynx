@@ -1,4 +1,12 @@
-use crate::parser::ast::{ElementExpression, Operator, Span};
+use crate::parser::ast::{ElementExpression, GenericIdentifier, Operator, Span};
+
+#[derive(Debug)]
+///Simply a name that comes before an expression. It represents anything like 'name: expr', '.name:expr' etc
+pub struct NamedExpr {
+    pub name: String,
+    pub expr: ASTExpression,
+    pub span: Span,
+}
 
 #[derive(Debug)]
 pub struct ASTExpression {
@@ -18,4 +26,8 @@ pub enum ASTExpressionKind {
         rhs: Box<ASTExpression>,
     },
     Identifier(String),
+    ObjectExpression{
+        name: GenericIdentifier,
+        fields: Vec<NamedExpr>
+    }
 }
