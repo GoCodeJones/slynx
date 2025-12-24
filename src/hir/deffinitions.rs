@@ -107,8 +107,8 @@ pub enum HirExpressionKind {
     },
     Object {
         name: HirId,
-        fields: Vec<HirExpression>,
-    },
+        fields: Vec<HirExpression>
+    }
 }
 impl HirExpression {
     ///Creates a int expression that must be infered.
