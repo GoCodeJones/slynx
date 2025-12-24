@@ -1,4 +1,4 @@
-use crate::parser::{
+use crate::{hir::declaration::HirExpression, parser::{
     Parser,
     ast::{
         ASTExpression, ASTExpressionKind, ComponentExpression, ComponentMemberValue,
@@ -6,7 +6,7 @@ use crate::parser::{
     },
     error::ParseError,
     lexer::tokens::{Token, TokenKind},
-};
+}};
 
 impl Parser {
     ///Parses an component expression but, starting from the LBrace, assuming the name of the component is the provided `name`
@@ -61,7 +61,73 @@ impl Parser {
         let ty = self.parse_type()?;
         self.parse_component_expr_with_name(ty)
     }
-
+    
+    pub fn parse_named_expr(&mut self) -> Result<NamedExpr, ParseError> {
+        let Token { kind: TokenKind::Identifier(name), span:start, } = self.expect(&TokenKind::Identifier(String::new()))? else {
+            unreachable!()
+        };
+        self.expect(&TokenKind::Colon)?;
+        let expr = self.parse_expression()?;
+        Ok(NamedExpr {
+            span: Span { start: start.start, end: expr.span.end },
+            name,
+            expr,
+        })
+    }
+    
+    pub fn parse_object_expression(&mut self) -> Result<ASTExpression, ParseError> {
+        let name = self.parse_type()?;
+        self.expect(&TokenKind::LParen)?;
+        let mut fields = Vec::new();
+        while self.peek()?.kind != TokenKind::RParen {
+            let named_expr = self.parse_named_expr()?;
+            fields.push(named_expr);
+        }
+        let Token {span: end, ..} = self.expect(&TokenKind::RParen)?;
+        Ok(ASTExpression {
+            span: Span {
+                start: name.span.start,
+                end: end.end
+            },
+            kind: ASTExpressionKind::ObjectExpression { name, fields },
+        })
+    }
+    
+    ///Parses anything that comes withn identifier. This can be a function call, object creation, or a struct creation. This is executed without eating the identifier to be able to choose what to
+    ///return
+    pub fn parse_identifier_exprs(&mut self) -> Result<Option<ASTExpression>, ParseError> {
+        let after_identifier = &self.peek_at(1)?.kind;
+        match after_identifier {
+            TokenKind::Lt => {
+                let ty = self.parse_type()?;
+                if let TokenKind::LBrace = self.peek()?.kind {
+                    let element = self.parse_element_expr_with_name(ty)?;
+                    Ok(Some(ASTExpression {
+                        span: element.span.clone(),
+                        kind: ASTExpressionKind::Element(element),
+                    }))
+                } else {
+                    Err(ParseError::UnexpectedToken(self.eat()?, "'{'".to_string()))
+                }
+            }
+            TokenKind::LBrace => {
+                let element = self.parse_element_expr()?;
+                Ok(Some(ASTExpression {
+                    span: element.span.clone(),
+                    kind: ASTExpressionKind::Element(element),
+                }))
+            }
+            TokenKind::LParen => {
+                
+                match (&self.peek_at(2)?.kind, &self.peek_at(3)?.kind) { //check if its name(a,b) or name(a:b), or name(.a:b)
+                    (TokenKind::Identifier(_), TokenKind::Colon) => Ok(Some(self.parse_object_expression()?)),
+                    _ => Ok(None), 
+                }
+            }
+            _ => Ok(None)
+        }
+    }
+    
     pub fn parse_primary(&mut self) -> Result<ASTExpression, ParseError> {
         if let TokenKind::Identifier(_) = self.peek()?.kind {
             let current_kind = &self.peek_at(1)?.kind;
