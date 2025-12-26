@@ -19,14 +19,9 @@ pub enum VisibilityModifier {
     ParentPublic,
 }
 
-<<<<<<< HEAD
-
 #[derive(Debug, Clone,Eq,PartialEq)]
 ///The representation of the bounds of something on the code. 
-=======
-#[derive(Debug, Clone)]
 ///The representation of the bounds of something on the code.
->>>>>>> e86a821 (chore: formatted the code)
 pub struct Span {
     pub start: usize,
     pub end: usize,
