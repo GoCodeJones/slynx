@@ -339,7 +339,7 @@ impl SlynxHir {
         match ast.kind {
             ASTDeclarationKind::MacroCall(..) => {}
             ASTDeclarationKind::ObjectDeclaration { name, fields } => {
-                self.resolve_object(name, fields)?
+                self.resolve_object(name, fields, ast.span)?
             }
             ASTDeclarationKind::FuncDeclaration {
                 name,

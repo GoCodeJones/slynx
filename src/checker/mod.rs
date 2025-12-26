@@ -1,5 +1,5 @@
 pub mod error;
-use std::{collections::HashMap, mem::discriminant};
+use std::{collections::HashMap};
 
 use crate::{
     checker::error::{IncompatibleComponentReason, TypeError, TypeErrorKind},
@@ -26,8 +26,6 @@ pub struct PropRef {
 pub struct TypeChecker {
     ///The type of everything that is expected to have some
     types: HashMap<HirId, HirType>,
-    ///Tracking of the types of the properties
-    properties: HashMap<PropRef, HirType>,
 }
 
 impl TypeChecker {
@@ -36,7 +34,6 @@ impl TypeChecker {
     pub fn check(hir: &mut SlynxHir) -> Result<(), TypeError> {
         let mut inner = Self {
             types: HashMap::new(),
-            properties: HashMap::new(),
         };
         for decl in &mut hir.declarations {
             inner.check_decl(decl)?;
@@ -50,7 +47,13 @@ impl TypeChecker {
     fn check_decl(&mut self, decl: &mut HirDeclaration) -> Result<(), TypeError> {
         self.types.insert(decl.id, decl.ty.clone());
         match decl.kind {
-            HirDeclarationKind::Function { .. } => {}
+            HirDeclarationKind::Function { ref mut statments, ..} => {
+                self.resolve_statments(statments, &decl.ty)?;
+            }
+            HirDeclarationKind::Object => {
+
+                self.types.insert(decl.id, decl.ty.clone());
+            }
             HirDeclarationKind::ElementDeclaration { ref mut props } => {
                 for prop in props {
                     let HirType::Component { props } = &mut decl.ty else {
@@ -103,20 +106,20 @@ impl TypeChecker {
                     props: resolved_props,
                 })
             }
-            
+
             _ => Ok(ty.clone()),
         }
     }
-    
+
     #[inline]
-    fn get_type_of_name(&self, name:&HirId, span: &Span) -> Result<HirType, TypeError> {
-        self
-            .types
+    fn get_type_of_name(&self, name: &HirId, span: &Span) -> Result<HirType, TypeError> {
+        self.types
             .get(&name)
             .ok_or(TypeError {
                 kind: TypeErrorKind::Unrecognized(*name),
                 span: span.clone(),
-            }).cloned()
+            })
+            .cloned()
     }
 
     ///Tries to unify types `a` and `b` if possible
@@ -125,6 +128,7 @@ impl TypeChecker {
         let b = self.resolve(b)?;
 
         match (&a, &b) {
+            (HirType::Int, HirType::Int) | (HirType::Float, HirType::Float) | (HirType::Str, HirType::Str) => Ok(a),
             (out, HirType::Infer) | (HirType::Infer, out) => Ok(out.clone()),
             (HirType::Reference { rf, .. }, b) | (b, HirType::Reference { rf, .. }) => {
                 self.unify_with_ref(*rf, b, span)
@@ -152,11 +156,28 @@ impl TypeChecker {
             }
             (t @ HirType::Component { .. }, HirType::GenericComponent)
             | (HirType::GenericComponent, t @ HirType::Component { .. }) => Ok(t.clone()),
-            (a, b) => {
+            (HirType::Struct { fields:f1 }, HirType::Struct { fields:f2 }) => {
+                if f1.len() != f2.len() {                    
+                    return Err(TypeError {
+                        kind: TypeErrorKind::IncompatibleTypes {
+                            lhs: a,
+                            rhs: b,
+                        },
+                        span: span.clone(),
+                    });
+                }else {
+                    for idx in 0..f1.len() {
+                        self.unify(&f1[idx], &f2[idx], span)?;
+                    } 
+                    Ok(a)
+                }
+            }
+            (unfound_a, unfound_b) => {
+                println!("Abibobubaboca {unfound_a:?} {unfound_b:?}");
                 return Err(TypeError {
                     kind: TypeErrorKind::IncompatibleTypes {
-                        lhs: a.clone(),
-                        rhs: b.clone(),
+                        lhs: a,
+                        rhs: b,
                     },
                     span: span.clone(),
                 });
@@ -220,6 +241,22 @@ impl TypeChecker {
     fn resolve_specialized(&mut self, _: &mut SpecializedElement) -> Result<(), TypeError> {
         Ok(())
     }
+    
+    fn resolve_statments(&mut self, statments: &mut Vec<HirStatment>, ty:&HirType) -> Result<(), TypeError> {
+        let HirType::Function { return_type, .. } = ty else {
+            unreachable!();
+        };
+        for statment in statments {
+            match &mut statment.kind {
+                HirStatmentKind::Return { expr } => expr.ty= self.unify(&expr.ty, return_type, &statment.span)?,
+                HirStatmentKind::Expression { expr }=> {
+                    expr.ty = self.get_type_of_expr(expr, &expr.span.clone())?;
+                }
+                
+            }
+        }
+        Ok(())
+    }
 
     fn resolve_element_values(
         &mut self,
@@ -234,7 +271,7 @@ impl TypeChecker {
         for value in values {
             match value {
                 ElementValueDeclaration::Specialized(spec) => {
-                    self.resolve_specialized(spec);
+                    self.resolve_specialized(spec)?;
                 }
                 ElementValueDeclaration::Property {
                     index, value, span, ..
@@ -259,9 +296,19 @@ impl TypeChecker {
         }
         Ok(target)
     }
-    
-    fn resolve_object_types(&mut self, ty: HirType, fields: &Vec<HirExpression>) -> Result<HirType, TypeError> {
-        Ok(ty)
+
+    fn resolve_object_types(
+        &mut self,
+        ty: HirType,
+        fields: &mut Vec<HirExpression>,
+    ) -> Result<(), TypeError> {
+        let HirType::Struct { fields:fields_tys } = ty else {
+            unreachable!("When resolving object types, a type 'struct' should be provided");
+        };
+        for (idx, f) in fields.iter_mut().enumerate() {
+           f.ty = self.unify(&fields_tys[idx], &f.ty, &f.span)?; 
+        }
+        Ok(())
     }
 
     ///Retrieves the type of the provided `expr`. Returns infer if it could not be inferred.
@@ -287,15 +334,23 @@ impl TypeChecker {
                 ty
             }
             HirExpressionKind::Identifier(_) => self.resolve(&expr.ty)?,
-            HirExpressionKind::Object { name, ref fields } => {
+            HirExpressionKind::Object {
+                name,
+                ref mut fields,
+            } => {
                 let obj = self.get_type_of_name(&name, span)?;
-                self.resolve_object_types(obj,fields)?
+                self.resolve_object_types(obj, fields)?;
+                HirType::Reference {
+                    rf: name,
+                    generics: Vec::new(),
+                }
             }
             HirExpressionKind::Element {
                 name,
                 ref mut values,
             } => {
                 let parent = self.get_type_of_name(&name, span)?;
+                
                 self.resolve_element_values(values, parent)?
             }
             ref un => {
@@ -394,6 +449,7 @@ impl TypeChecker {
 
     fn set_default(&mut self, decl: &mut HirDeclaration) -> Result<(), TypeError> {
         match decl.kind {
+            HirDeclarationKind::Object => {}
             HirDeclarationKind::Function {
                 ref mut statments, ..
             } => {
