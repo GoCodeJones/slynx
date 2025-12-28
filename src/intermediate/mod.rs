@@ -22,6 +22,7 @@ use crate::{
     },
 };
 
+#[derive(Debug)]
 ///Struct used to represent the intermediate representation of Slynx. WIll be used when being compiled. This contains the monomorfization of types
 ///and flat values of everything in the source code. It can be understood as the context itself of the IR
 pub struct IntermediateRepr {
@@ -91,8 +92,15 @@ impl IntermediateRepr {
                 }
                 sidx
             }
-            _ => {
-                0
+            HirExpressionKind::Object { name, fields } => {
+                let indexes = fields
+                    .into_iter()
+                    .map(|expr| self.generate_expr(expr))
+                    .collect();
+                self.active_context().insert_expr(IntermediateExpr::Struct {
+                    id: name,
+                    exprs: indexes,
+                })
             }
         }
     }
@@ -220,7 +228,7 @@ impl IntermediateRepr {
         for statment in statments {
             match statment.kind {
                 HirStatmentKind::Expression { expr } => {
-                    self.generate_expr(expr);
+                    let expr = self.generate_expr(expr);
                 }
                 HirStatmentKind::Return { expr } => {
                     let id = self.generate_expr(expr);
@@ -235,6 +243,13 @@ impl IntermediateRepr {
     pub fn generate(&mut self, decls: Vec<HirDeclaration>) {
         for decl in decls {
             match decl.kind {
+                HirDeclarationKind::Object => {
+                    let HirType::Struct { fields } = decl.ty else {
+                        unreachable!("Type of a object declaration should be 'struct'");
+                    };
+                    let ty = self.retrieve_complex(&fields);
+                    self.types_mapping.insert(decl.id, ty);
+                }
                 HirDeclarationKind::Function { statments, name } => {
                     let HirType::Function { args, return_type } = &decl.ty else {
                         unreachable!("Type of function decl should be function")
