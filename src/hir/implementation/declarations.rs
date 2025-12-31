@@ -1,7 +1,7 @@
 use crate::{
     hir::{
         HirId, SlynxHir,
-        declaration::{ElementValueDeclaration, SpecializedElement},
+        declaration::{ElementValueDeclaration, SpecializedComponent},
         error::{HIRError, HIRErrorKind},
         types::HirType,
     },
@@ -65,7 +65,7 @@ impl SlynxHir {
         &mut self,
         values: Vec<ComponentMemberValue>,
         span: &Span,
-    ) -> Result<SpecializedElement, HIRError> {
+    ) -> Result<SpecializedComponent, HIRError> {
         let mut text = None;
         for value in values {
             match value {
@@ -91,7 +91,7 @@ impl SlynxHir {
             }
         }
         if let Some(text) = text {
-            Ok(SpecializedElement::Text {
+            Ok(SpecializedComponent::Text {
                 text: Box::new(text),
             })
         } else {

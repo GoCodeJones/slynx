@@ -10,7 +10,7 @@ use crate::{
         HirId,
         declaration::{
             ElementValueDeclaration, HirDeclaration, HirDeclarationKind, HirExpression,
-            HirExpressionKind, HirStatment, HirStatmentKind, SpecializedElement,
+            HirExpressionKind, HirStatment, HirStatmentKind, SpecializedComponent,
         },
         types::HirType,
     },
@@ -134,13 +134,13 @@ impl IntermediateRepr {
         eidx
     }
 
-    fn generate_specialized(&mut self, spec: SpecializedElement) -> usize {
+    fn generate_specialized(&mut self, spec: SpecializedComponent) -> usize {
         let expr = match spec {
-            SpecializedElement::Text { text } => {
+            SpecializedComponent::Text { text } => {
                 let txt = self.generate_expr(*text);
                 IntermediateExpr::native_text(txt, Vec::new())
             }
-            SpecializedElement::Div { children } => {
+            SpecializedComponent::Div { children } => {
                 let mut props = Vec::new();
                 let children = children
                     .into_iter()
