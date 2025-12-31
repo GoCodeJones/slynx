@@ -1,7 +1,7 @@
 use crate::parser::{
     ast::{
-        ASTDeclaration, ASTDeclarationKind, ComponentMember,ComponentMemberKind,
-        GenericIdentifier, VisibilityModifier, Span,
+        ASTDeclaration, ASTDeclarationKind, ComponentMember, ComponentMemberKind,
+        GenericIdentifier, Span, VisibilityModifier,
     },
     error::ParseError,
     lexer::tokens::{Token, TokenKind},
@@ -88,7 +88,7 @@ impl Parser {
             TokenKind::Identifier(_) => {
                 let span = curr.span.clone();
                 let expr = self.parse_element_expr()?;
-                Ok(ComponentMember{
+                Ok(ComponentMember {
                     kind: ComponentMemberKind::Child(expr),
                     span,
                 })
@@ -169,7 +169,7 @@ impl Parser {
                                 ));
                             }
                         };
-                        Ok(ComponentMember{
+                        Ok(ComponentMember {
                             kind: ComponentMemberKind::Property {
                                 name: ident,
                                 modifier,
@@ -215,7 +215,7 @@ impl Parser {
         self.expect(&TokenKind::LBrace)?;
         let mut defs = Vec::new();
         while self.peek()?.kind != TokenKind::RBrace {
-            defs.push(self.parse_component_members()?);
+            defs.push(self.parse_component_member()?);
         }
         let Token { span: end, .. } = self.expect(&TokenKind::RBrace)?;
         span.end = end.end;

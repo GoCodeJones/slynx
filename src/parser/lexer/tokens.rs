@@ -40,7 +40,6 @@ impl std::fmt::Display for TokenKind {
             Self::Int(value) => value.to_string(),
             Self::String(value) => value.to_string(),
             Self::Identifier(value) => value.to_string(),
-            Self::MacroName(value) => value.to_string(),
         };
         write!(f, "{}", result)
     }
