@@ -6,6 +6,20 @@ pub use expression::*;
 pub use types::*;
 pub use elements::*;
 
+#[derive(Default, Debug, Clone)]
+pub enum VisibilityModifier{
+    ///Property visible to everyone
+    Public,
+    ///Property visible only to the element itself.
+    #[default]
+    Private,
+    ///Property visible only for the children
+    ChildrenPublic,
+    ///Property visible only for the parents
+    ParentPublic,
+}
+
+
 #[derive(Debug, Clone,Eq,PartialEq)]
 ///The representation of the bounds of something on the code. 
 pub struct Span {
@@ -53,7 +67,7 @@ pub struct ASTDeclaration {
 
 #[derive(Debug)]
 pub struct ObjectField {
-    pub visibility: PropertyModifier,
+    pub visibility: VisibilityModifier,
     pub name: TypedName
 }
 
