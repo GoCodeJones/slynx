@@ -1,15 +1,15 @@
-pub mod objects;
 pub mod ast;
 mod component;
 pub mod error;
 mod expr;
 mod functions;
 pub mod lexer;
+pub mod objects;
 mod statment;
 mod types;
 
 use crate::parser::{
-    ast::{ASTDeclaration},
+    ast::ASTDeclaration,
     error::ParseError,
     lexer::{
         TokenStream,
@@ -62,18 +62,8 @@ impl Parser {
         let mut out = Vec::new();
         while let Ok(token) = self.peek() {
             match &token.kind {
-                TokenKind::MacroName(_) => {
-                    let Token {
-                        kind: TokenKind::MacroName(name),
-                        span,
-                    } = self.eat()?
-                    else {
-                        unreachable!();
-                    };
-                    out.push(self.parse_macro(name, span)?)
-                }
                 TokenKind::Object => {
-                    let Token {span, ..} = self.eat()?;
+                    let Token { span, .. } = self.eat()?;
                     out.push(self.parse_object(span)?);
                 }
                 TokenKind::Component => {

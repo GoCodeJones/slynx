@@ -1,8 +1,8 @@
 use crate::parser::{
     Parser,
     ast::{
-        ASTExpression, ASTExpressionKind, ComponentExpression, ComponentMemberValue, GenericIdentifier,
-        Operator, Span,
+        ASTExpression, ASTExpressionKind, ComponentExpression, ComponentMemberValue,
+        GenericIdentifier, Operator, Span,
     },
     error::ParseError,
     lexer::tokens::{Token, TokenKind},
@@ -50,7 +50,7 @@ impl Parser {
                 }
                 _ => {
                     let val = self.parse_element_expr()?;
-                    values.push(ComponentMemberValue::Element(val));
+                    values.push(ComponentMemberValue::Child(val));
                 }
             }
         }
