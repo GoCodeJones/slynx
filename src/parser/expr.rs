@@ -1,7 +1,7 @@
 use crate::parser::{
     Parser,
     ast::{
-        ASTExpression, ASTExpressionKind, ElementExpression, ElementValue, GenericIdentifier,
+        ASTExpression, ASTExpressionKind, ComponentExpression, ComponentMemberValue, GenericIdentifier,
         Operator, Span,
     },
     error::ParseError,
@@ -13,7 +13,7 @@ impl Parser {
     pub fn parse_element_expr_with_name(
         &mut self,
         name: GenericIdentifier,
-    ) -> Result<ElementExpression, ParseError> {
+    ) -> Result<ComponentExpression, ParseError> {
         let mut span = Span {
             start: name.span.start,
             end: 0,
@@ -39,7 +39,7 @@ impl Parser {
                     };
                     self.expect(&TokenKind::Colon)?;
                     let val = self.parse_expression()?;
-                    values.push(ElementValue::Assign {
+                    values.push(ComponentMemberValue::Assign {
                         prop_name: ident,
                         span: Span {
                             start: span.start,
@@ -50,14 +50,14 @@ impl Parser {
                 }
                 _ => {
                     let val = self.parse_element_expr()?;
-                    values.push(ElementValue::Element(val));
+                    values.push(ComponentMemberValue::Element(val));
                 }
             }
         }
         self.expect(&TokenKind::RBrace)?;
-        Ok(ElementExpression { name, values, span })
+        Ok(ComponentExpression { name, values, span })
     }
-    pub fn parse_element_expr(&mut self) -> Result<ElementExpression, ParseError> {
+    pub fn parse_element_expr(&mut self) -> Result<ComponentExpression, ParseError> {
         let ty = self.parse_type()?;
         self.parse_element_expr_with_name(ty)
     }
