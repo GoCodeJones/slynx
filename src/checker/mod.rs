@@ -312,15 +312,6 @@ impl TypeChecker {
                 name,
                 ref mut values,
             } => {
-                let parent = self
-                    .types
-                    .get_mut(&name)
-                    .ok_or(TypeError {
-                        kind: TypeErrorKind::Unrecognized(name),
-                        span: span.clone(),
-                    })?
-                    .clone();
-                self.resolve_component_members(values, parent)?
             }
             ref un => {
                 unimplemented!("{un:?}")
