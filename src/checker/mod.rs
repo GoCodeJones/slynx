@@ -54,7 +54,7 @@ impl TypeChecker {
             HirDeclarationKind::ComponentDeclaration{ ref mut props } => {
                 for prop in props {
                     let HirType::Component { props } = &mut decl.ty else {
-                        unreachable!("Element declaration should have type component");
+                        unreachable!("Component declaration should have type component");
                     };
 
                     match prop {
@@ -210,14 +210,14 @@ impl TypeChecker {
         Ok(())
     }
 
-    fn resolve_element_values(
+    fn resolve_component_members(
         &mut self,
         values: &mut Vec<ComponentMemberDeclaration>,
         mut target: HirType,
     ) -> Result<HirType, TypeError> {
         let HirType::Component { ref mut props } = target else {
             unreachable!(
-                "The type received when resolving element values should be a component one"
+                "The type received when resolving component values should be a component one"
             );
         };
         for value in values {
@@ -242,7 +242,7 @@ impl TypeChecker {
                             span: span.clone(),
                         })?
                         .clone();
-                    self.resolve_element_values(values, ty)?;
+                    self.resolve_component_members(values, ty)?;
                 }
             }
         }
@@ -285,7 +285,7 @@ impl TypeChecker {
                         span: span.clone(),
                     })?
                     .clone();
-                self.resolve_element_values(values, parent)?
+                self.resolve_component_members(values, parent)?
             }
             ref un => {
                 unimplemented!("{un:?}")
@@ -327,7 +327,7 @@ impl TypeChecker {
                 ref mut values,
             } => {
                 let HirType::Component { ref mut props } = expr.ty.clone() else {
-                    unreachable!("Element expression should be of type element");
+                    unreachable!("Component expression should be of type component");
                 };
                 expr.ty = HirType::Reference {
                     rf: *name,
@@ -353,7 +353,7 @@ impl TypeChecker {
                                     span: span.clone(),
                                 })?
                                 .clone();
-                            self.resolve_element_values(values, ty)?;
+                            self.resolve_component_members(values, ty)?;
                         }
                     }
                 }
@@ -394,7 +394,7 @@ impl TypeChecker {
                 }
             }
             HirDeclarationKind::ComponentDeclaration{ ref mut props } => {
-                self.resolve_element_values(props, decl.ty.clone())?;
+                self.resolve_component_members(props, decl.ty.clone())?;
             }
         }
         Ok(())
