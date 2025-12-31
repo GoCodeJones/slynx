@@ -246,7 +246,6 @@ impl TypeChecker {
         for value in values {
             match value {
                 ComponentMemberDeclaration::Specialized(spec) => {
-                    self.resolve_specialized(spec)?;
                 }
                 ComponentMemberDeclaration::Property {
                     index, value, span, ..
