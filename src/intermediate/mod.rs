@@ -75,7 +75,7 @@ impl IntermediateRepr {
                 let eidx = self.generate_child(name, values);
                 if matches!(
                     self.active_context().ty,
-                    IntermediateContextType::Element { .. }
+                    IntermediateContextType::Component{ .. }
                 ) {
                     self.active_context().insert_child(eidx); //child index
                 };
@@ -85,7 +85,7 @@ impl IntermediateRepr {
                 let sidx = self.generate_specialized(spec);
                 if matches!(
                     self.active_context().ty,
-                    IntermediateContextType::Element { .. }
+                    IntermediateContextType::Component{ .. }
                 ) {
                     self.active_context().insert_child(sidx);
                 }
@@ -124,7 +124,7 @@ impl IntermediateRepr {
         //expr index
         let eidx = self
             .active_context()
-            .insert_expr(IntermediateExpr::Element {
+            .insert_expr(IntermediateExpr::Component{
                 id: name,
                 props,
                 children,
@@ -175,7 +175,7 @@ impl IntermediateRepr {
         props: Vec<ComponentMemberDeclaration>,
         tys: &Vec<IntermediateType>,
     ) {
-        let expr = IntermediateContext::new_element(id);
+        let expr = IntermediateContext::new_component(id);
 
         self.contexts.push(expr);
         for (idx, prop) in props.into_iter().enumerate() {
