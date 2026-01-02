@@ -36,7 +36,7 @@ impl HirId {
     }
 }
 
-#[derive(Debug,Default)]
+#[derive(Debug, Default)]
 pub struct SlynxHir {
     ///Maps a name N to it's ID on the HIR. This is for something like function declaration and function call.
     names: HashMap<String, HirId>,
@@ -126,15 +126,13 @@ impl SlynxHir {
             unreachable!("The type should be a component instead");
         };
 
-        let accepting_children = props
-            .iter()
-            .any(|prop| {
-                prop.1 == "children"
-                    && matches!(
-                        prop.0,
-                        VisibilityModifier::ParentPublic | VisibilityModifier::Public
-                    )
-            });
+        let accepting_children = props.iter().any(|prop| {
+            prop.1 == "children"
+                && matches!(
+                    prop.0,
+                    VisibilityModifier::ParentPublic | VisibilityModifier::Public
+                )
+        });
         for member in members {
             out.push(match member {
                 ComponentMemberValue::Assign {
@@ -181,7 +179,9 @@ impl SlynxHir {
                     } else {
                         return Err(HIRError {
                             span: child.span.clone(),
-                            kind: HIRErrorKind::InvalidChild { child },
+                            kind: HIRErrorKind::InvalidChild {
+                                child: Box::new(child),
+                            },
                         });
                     }
                 }

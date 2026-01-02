@@ -84,7 +84,7 @@ impl SlynxHir {
                 },
                 ComponentMemberValue::Child(e) => {
                     return Err(HIRError {
-                        kind: HIRErrorKind::InvalidChild { child: e },
+                        kind: HIRErrorKind::InvalidChild { child: Box::new(e) },
                         span: span.clone(),
                     });
                 }

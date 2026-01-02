@@ -141,15 +141,13 @@ impl TypeChecker {
             }
             (t @ HirType::Component { .. }, HirType::GenericComponent)
             | (HirType::GenericComponent, t @ HirType::Component { .. }) => Ok(t.clone()),
-            (a, b) => {
-                Err(TypeError {
-                    kind: TypeErrorKind::IncompatibleTypes {
-                        lhs: a.clone(),
-                        rhs: b.clone(),
-                    },
-                    span: span.clone(),
-                })
-            }
+            (a, b) => Err(TypeError {
+                kind: TypeErrorKind::IncompatibleTypes {
+                    lhs: a.clone(),
+                    rhs: b.clone(),
+                },
+                span: span.clone(),
+            }),
         }
     }
 
