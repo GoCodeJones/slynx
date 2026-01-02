@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 #[derive(Debug)]
 pub enum IntermediateInstruction {
     ///Allocates(creates) a new function
@@ -13,5 +11,4 @@ pub enum IntermediateInstruction {
     Read(usize),
     ///Returns with the value on the provided id
     Ret(usize),
-    Js(Cow<'static, str>),
 }
