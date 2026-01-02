@@ -26,8 +26,6 @@ pub struct PropRef {
 pub struct TypeChecker {
     ///The type of everything that is expected to have some
     types: HashMap<HirId, HirType>,
-    ///Tracking of the types of the properties
-    properties: HashMap<PropRef, HirType>,
 }
 
 impl TypeChecker {
@@ -36,7 +34,6 @@ impl TypeChecker {
     pub fn check(hir: &mut SlynxHir) -> Result<(), TypeError> {
         let mut inner = Self {
             types: HashMap::new(),
-            properties: HashMap::new(),
         };
         for decl in &mut hir.declarations {
             inner.check_decl(decl)?;

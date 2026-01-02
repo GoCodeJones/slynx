@@ -63,30 +63,26 @@ impl Parser {
     }
 
     pub fn parse_primary(&mut self) -> Result<ASTExpression, ParseError> {
-        match self.peek()?.kind {
-            TokenKind::Identifier(_) => {
-                let current_kind = &self.peek_at(1)?.kind;
-
-                if matches!(current_kind, TokenKind::Lt) {
-                    let ty = self.parse_type()?;
-                    return if let TokenKind::LBrace = self.peek()?.kind {
-                        let component = self.parse_component_expr_with_name(ty)?;
-                        Ok(ASTExpression {
-                            span: component.span.clone(),
-                            kind: ASTExpressionKind::Component(component),
-                        })
-                    } else {
-                        Err(ParseError::UnexpectedToken(self.eat()?, "'{'".to_string()))
-                    };
-                } else if matches!(current_kind, TokenKind::LBrace) {
-                    let component = self.parse_component_expr()?;
-                    return Ok(ASTExpression {
+        if let TokenKind::Identifier(_) = self.peek()?.kind {
+            let current_kind = &self.peek_at(1)?.kind;
+            if matches!(current_kind, TokenKind::Lt) {
+                let ty = self.parse_type()?;
+                return if let TokenKind::LBrace = self.peek()?.kind {
+                    let component = self.parse_component_expr_with_name(ty)?;
+                    Ok(ASTExpression {
                         span: component.span.clone(),
                         kind: ASTExpressionKind::Component(component),
-                    });
-                }
+                    })
+                } else {
+                    Err(ParseError::UnexpectedToken(self.eat()?, "'{'".to_string()))
+                };
+            } else if matches!(current_kind, TokenKind::LBrace) {
+                let component = self.parse_component_expr()?;
+                return Ok(ASTExpression {
+                    span: component.span.clone(),
+                    kind: ASTExpressionKind::Component(component),
+                });
             }
-            _ => {}
         };
         let current = self.eat()?;
         match current.kind {
