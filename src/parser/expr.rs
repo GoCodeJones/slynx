@@ -8,8 +8,8 @@ use crate::parser::{
 };
 
 impl Parser {
-    ///Parses an element expression but, starting from the LBrace, assuming the name of the element is the provided `name`
-    pub fn parse_element_expr_with_name(
+    ///Parses an component expression but, starting from the LBrace, assuming the name of the component is the provided `name`
+    pub fn parse_component_expr_with_name(
         &mut self,
         name: GenericIdentifier,
     ) -> Result<ComponentExpression, ParseError> {
@@ -48,7 +48,7 @@ impl Parser {
                     });
                 }
                 _ => {
-                    let val = self.parse_element_expr()?;
+                    let val = self.parse_component_expr()?;
                     values.push(ComponentMemberValue::Child(val));
                 }
             }
@@ -56,9 +56,9 @@ impl Parser {
         self.expect(&TokenKind::RBrace)?;
         Ok(ComponentExpression { name, values, span })
     }
-    pub fn parse_element_expr(&mut self) -> Result<ComponentExpression, ParseError> {
+    pub fn parse_component_expr(&mut self) -> Result<ComponentExpression, ParseError> {
         let ty = self.parse_type()?;
-        self.parse_element_expr_with_name(ty)
+        self.parse_component_expr_with_name(ty)
     }
     
     pub fn parse_named_expr(&mut self) -> Result<NamedExpr, ParseError> {
