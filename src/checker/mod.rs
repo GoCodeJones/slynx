@@ -1,5 +1,5 @@
 pub mod error;
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use crate::{
     checker::error::{IncompatibleComponentReason, TypeError, TypeErrorKind},
@@ -108,7 +108,7 @@ impl TypeChecker {
     #[inline]
     fn get_type_of_name(&self, name: &HirId, span: &Span) -> Result<HirType, TypeError> {
         self.types
-            .get(&name)
+            .get(name)
             .ok_or(TypeError {
                 kind: TypeErrorKind::Unrecognized(*name),
                 span: span.clone(),
@@ -133,7 +133,9 @@ impl TypeChecker {
         let b = self.resolve(b)?;
 
         match (&a, &b) {
-            (HirType::Int, HirType::Int) | (HirType::Float, HirType::Float) | (HirType::Str, HirType::Str) => Ok(a),
+            (HirType::Int, HirType::Int)
+            | (HirType::Float, HirType::Float)
+            | (HirType::Str, HirType::Str) => Ok(a),
             (out, HirType::Infer) | (HirType::Infer, out) => Ok(out.clone()),
             (HirType::Reference { rf, .. }, b) | (b, HirType::Reference { rf, .. }) => {
                 self.unify_with_ref(*rf, b, span)
@@ -227,18 +229,23 @@ impl TypeChecker {
     fn resolve_specialized(&mut self, _: &mut SpecializedComponent) -> Result<(), TypeError> {
         Ok(())
     }
-    
-    fn resolve_statments(&mut self, statments: &mut Vec<HirStatment>, ty:&HirType) -> Result<(), TypeError> {
+
+    fn resolve_statments(
+        &mut self,
+        statments: &mut Vec<HirStatment>,
+        ty: &HirType,
+    ) -> Result<(), TypeError> {
         let HirType::Function { return_type, .. } = ty else {
             unreachable!();
         };
         for statment in statments {
             match &mut statment.kind {
-                HirStatmentKind::Return { expr } => expr.ty= self.unify(&expr.ty, return_type, &statment.span)?,
-                HirStatmentKind::Expression { expr }=> {
+                HirStatmentKind::Return { expr } => {
+                    expr.ty = self.unify(&expr.ty, return_type, &statment.span)?
+                }
+                HirStatmentKind::Expression { expr } => {
                     expr.ty = self.get_type_of_expr(expr, &expr.span.clone())?;
                 }
-                
             }
         }
         Ok(())
@@ -285,13 +292,13 @@ impl TypeChecker {
     fn resolve_object_types(
         &mut self,
         ty: HirType,
-        fields: &mut Vec<HirExpression>,
+        fields: &mut [HirExpression],
     ) -> Result<(), TypeError> {
-        let HirType::Struct { fields:fields_tys } = ty else {
+        let HirType::Struct { fields: fields_tys } = ty else {
             unreachable!("When resolving object types, a type 'struct' should be provided");
         };
         for (idx, f) in fields.iter_mut().enumerate() {
-           f.ty = self.unify(&fields_tys[idx], &f.ty, &f.span)?; 
+            f.ty = self.unify(&fields_tys[idx], &f.ty, &f.span)?;
         }
         Ok(())
     }
@@ -380,7 +387,7 @@ impl TypeChecker {
             }
             HirExpressionKind::Specialized(_) => {
                 expr.ty = self.unify(&expr.ty, &HirType::GenericComponent, &expr.span)?
-            }            
+            }
             HirExpressionKind::Object { .. } => {
                 expr.ty = self.resolve(&expr.ty)?;
             }
