@@ -22,7 +22,7 @@ use crate::{
     },
 };
 
-#[derive(Debug,Default)]
+#[derive(Debug, Default)]
 pub struct WebCompiler {
     script: Script,
     names: HashMap<HirId, Ident>,

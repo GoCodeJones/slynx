@@ -15,8 +15,8 @@ pub enum HIRErrorKind {
     NameNotRecognized(String),
     NameAlreadyDefined(String),
     InvalidBinaryExpression {
-        lhs: HirExpression,
-        rhs: HirExpression,
+        lhs: Box<HirExpression>,
+        rhs: Box<HirExpression>,
     },
     MissingProperty {
         prop_names: Vec<String>,
@@ -28,7 +28,7 @@ pub enum HIRErrorKind {
         prop_name: String,
     },
     InvalidChild {
-        child: ComponentExpression,
+        child: Box<ComponentExpression>,
     },
     InvalidType {
         ty: String,
@@ -50,9 +50,7 @@ impl std::fmt::Display for HIRError {
             HIRErrorKind::TypeNotRecognized(name) => {
                 format!("Type with name '{name}' is was not defined previously")
             }
-            HIRErrorKind::InvalidBinaryExpression { .. } => {
-                "Invalid binary expression".to_string()
-            }
+            HIRErrorKind::InvalidBinaryExpression { .. } => "Invalid binary expression".to_string(),
             HIRErrorKind::PropertyNotVisible { prop_name } => {
                 format!("Property with name '{prop_name}' is not visible")
             }

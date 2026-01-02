@@ -197,12 +197,10 @@ impl Parser {
                     }
                 }
             }
-            _ => {
-                Err(ParseError::UnexpectedToken(
-                    self.eat()?,
-                    "'prop' a macro name or an identifier".to_string(),
-                ))
-            }
+            _ => Err(ParseError::UnexpectedToken(
+                self.eat()?,
+                "'prop' a macro name or an identifier".to_string(),
+            )),
         }
     }
     ///Parses a component declaration. This initializes on the 'component' keyword
