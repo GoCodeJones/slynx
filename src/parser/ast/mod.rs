@@ -18,8 +18,7 @@ pub enum VisibilityModifier {
     ///Property visible only for the parents. Only usable on Components.
     ParentPublic,
 }
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 ///The representation of the bounds of something on the code.
 pub struct Span {
     pub start: usize,

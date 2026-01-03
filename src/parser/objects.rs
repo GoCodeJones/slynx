@@ -20,7 +20,7 @@ impl Parser {
             if self.peek()?.kind == TokenKind::RBrace {
                 break;
             } else {
-                self.expect(&TokenKind::Colon)?;
+                self.expect(&TokenKind::Comma)?;
             }
         }
         let Token { span, .. } = self.expect(&TokenKind::RBrace)?;

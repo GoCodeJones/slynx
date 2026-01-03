@@ -7,7 +7,7 @@ use std::{collections::HashMap, sync::atomic::AtomicU64};
 
 use crate::{
     hir::{
-        declaration::{
+        deffinitions::{
             ComponentMemberDeclaration, HirDeclaration, HirDeclarationKind, HirStatment,
             HirStatmentKind,
         },

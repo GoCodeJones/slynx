@@ -11,9 +11,9 @@ pub mod checker;
 pub mod compiler;
 pub mod parser;
 
+mod context;
 pub mod hir;
 pub mod intermediate;
-mod context;
 pub use context::*;
 
 pub fn compile_code(path: PathBuf) -> i32 {

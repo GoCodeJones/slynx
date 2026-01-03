@@ -5,7 +5,7 @@ use crate::{
     checker::error::{IncompatibleComponentReason, TypeError, TypeErrorKind},
     hir::{
         HirId, SlynxHir,
-        declaration::{
+        deffinitions::{
             ComponentMemberDeclaration, HirDeclaration, HirDeclarationKind, HirExpression,
             HirExpressionKind, HirStatment, HirStatmentKind, SpecializedComponent,
         },
@@ -47,7 +47,15 @@ impl TypeChecker {
     fn check_decl(&mut self, decl: &mut HirDeclaration) -> Result<(), TypeError> {
         self.types.insert(decl.id, decl.ty.clone());
         match decl.kind {
-            HirDeclarationKind::Function { .. } => {}
+            HirDeclarationKind::Function {
+                ref mut statments, ..
+            } => {
+                self.resolve_statments(statments, &decl.ty)?;
+            }
+            HirDeclarationKind::Object => {
+                self.types.insert(decl.id, decl.ty.clone());
+            }
+
             HirDeclarationKind::ComponentDeclaration { ref mut props } => {
                 for prop in props {
                     let HirType::Component { props } = &mut decl.ty else {
@@ -174,10 +182,27 @@ impl TypeChecker {
             }
             (t @ HirType::Component { .. }, HirType::GenericComponent)
             | (HirType::GenericComponent, t @ HirType::Component { .. }) => Ok(t.clone()),
-            (a, b) => Err(TypeError {
+
+            (HirType::Struct { fields: f1 }, HirType::Struct { fields: f2 }) => {
+                if f1.len() != f2.len() {
+                    Err(TypeError {
+                        kind: TypeErrorKind::IncompatibleTypes {
+                            expected: b,
+                            received: a,
+                        },
+                        span: span.clone(),
+                    })
+                } else {
+                    for idx in 0..f1.len() {
+                        self.unify(&f1[idx], &f2[idx], span)?;
+                    }
+                    Ok(a)
+                }
+            }
+            (_, _) => Err(TypeError {
                 kind: TypeErrorKind::IncompatibleTypes {
-                    lhs: a.clone(),
-                    rhs: b.clone(),
+                    expected: b,
+                    received: a,
                 },
                 span: span.clone(),
             }),
@@ -275,6 +300,7 @@ impl TypeChecker {
         for value in values {
             match value {
                 ComponentMemberDeclaration::Specialized(spec) => {
+                    self.resolve_specialized(spec)?;
                 }
                 ComponentMemberDeclaration::Property {
                     index, value, span, ..
@@ -341,14 +367,25 @@ impl TypeChecker {
                 ref mut values,
             } => {
                 let parent = self
-                                .types
-                                    .get_mut(&name)
-                                    .ok_or(TypeError {
-                                        kind: TypeErrorKind::Unrecognized(name),
-                                        span: span.clone(),
-                                    })?
-                                    .clone();
-                                self.resolve_component_members(values, parent)?
+                    .types
+                    .get_mut(&name)
+                    .ok_or(TypeError {
+                        kind: TypeErrorKind::Unrecognized(name),
+                        span: span.clone(),
+                    })?
+                    .clone();
+                self.resolve_component_members(values, parent)?
+            }
+            HirExpressionKind::Object {
+                name,
+                ref mut fields,
+            } => {
+                let obj = self.get_type_of_name(&name, span)?;
+                self.resolve_object_types(obj, fields)?;
+                HirType::Reference {
+                    rf: name,
+                    generics: Vec::new(),
+                }
             }
             ref un => {
                 unimplemented!("{un:?}")

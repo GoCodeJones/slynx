@@ -50,6 +50,18 @@ impl WebCompiler {
         self.names.get(&id).cloned().unwrap()
     }
 
+    pub fn get_name(&self, id: &HirId) -> &Ident {
+        self.names.get(id).expect("'get_name' should have returned, this is a bug where a name wasn't hoisted. Please check what's happening")
+    }
+
+    ///Creates the new func name, binds it to be the name of the provided `id` and returns it
+    pub fn retrieve_next_func_name(&mut self, id: HirId) -> Ident {
+        let name = format!("f{}", self.next_component_index);
+        self.next_component_index += 1;
+        self.names.insert(id, create_ident(&name));
+        self.names.get(&id).cloned().unwrap()
+    }
+
     ///Maps the provided `id` to the provided `name` and returns it's indent
     pub fn map_name(&mut self, id: HirId, name: &str) -> Ident {
         self.names.insert(id, create_ident(name));

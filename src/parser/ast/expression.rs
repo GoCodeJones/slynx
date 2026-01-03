@@ -1,4 +1,12 @@
-use crate::parser::ast::{ComponentExpression, Operator, Span};
+use crate::parser::ast::{ComponentExpression, GenericIdentifier, Operator, Span};
+
+#[derive(Debug)]
+///Simply a name that comes before an expression. It represents anything like 'name: expr', '.name:expr' etc
+pub struct NamedExpr {
+    pub name: String,
+    pub expr: ASTExpression,
+    pub span: Span,
+}
 
 #[derive(Debug)]
 pub struct ASTExpression {

@@ -4,11 +4,14 @@ use swc_ecma_ast::{
 };
 
 use crate::{
-    compiler::{js::WebCompiler, slynx_compiler::SlynxCompiler},
-    hir::HirId,
+    compiler::{
+        js::{WebCompiler, create_ident},
+        slynx_compiler::SlynxCompiler,
+    },
     intermediate::{
         IntermediateRepr,
-        context::{IntermediateContext, IntermediateProperty},
+        context::{IntermediateContext, IntermediateContextType, IntermediateProperty},
+        node::IntermediateInstruction,
     },
 };
 
@@ -54,7 +57,6 @@ impl WebCompiler {
 
     pub fn compile_component(
         &mut self,
-        id: HirId,
         properties: &[IntermediateProperty],
         ctx: &IntermediateContext,
         ir: &IntermediateRepr,
@@ -72,8 +74,8 @@ impl WebCompiler {
             body: Some(self.compile_component_body()),
         };
         let f = Decl::Fn(FnDecl {
-            ident: self.retrieve_next_component_name(id),
-            declare: true,
+            ident: self.get_name(&ctx.id).clone(),
+            declare: false,
             function: Box::new(func),
         });
         self.script.body.push(Stmt::Decl(f));

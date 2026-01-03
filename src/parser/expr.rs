@@ -93,7 +93,7 @@ impl Parser {
                 break;
             } else {
                 self.expect(&TokenKind::Comma)?;
-            }            
+            }
         }
         let Token { span: end, .. } = self.expect(&TokenKind::RParen)?;
         Ok(ASTExpression {
@@ -113,20 +113,20 @@ impl Parser {
             TokenKind::Lt => {
                 let ty = self.parse_type()?;
                 if let TokenKind::LBrace = self.peek()?.kind {
-                    let element = self.parse_component_expr_with_name(ty)?;
+                    let component = self.parse_component_expr_with_name(ty)?;
                     Ok(Some(ASTExpression {
-                        span: element.span.clone(),
-                        kind: ASTExpressionKind::Component(element),
+                        span: component.span.clone(),
+                        kind: ASTExpressionKind::Component(component),
                     }))
                 } else {
                     Err(ParseError::UnexpectedToken(self.eat()?, "'{'".to_string()))
                 }
             }
             TokenKind::LBrace => {
-                let element = self.parse_component_expr()?;
+                let component = self.parse_component_expr()?;
                 Ok(Some(ASTExpression {
-                    span: element.span.clone(),
-                    kind: ASTExpressionKind::Component(element),
+                    span: component.span.clone(),
+                    kind: ASTExpressionKind::Component(component),
                 }))
             }
             TokenKind::LParen => {
@@ -144,26 +144,40 @@ impl Parser {
     }
 
     pub fn parse_primary(&mut self) -> Result<ASTExpression, ParseError> {
-        if let TokenKind::Identifier(_) = self.peek()?.kind {
-            let current_kind = &self.peek_at(1)?.kind;
-            if matches!(current_kind, TokenKind::Lt) {
-                let ty = self.parse_type()?;
-                return if let TokenKind::LBrace = self.peek()?.kind {
-                    let component = self.parse_component_expr_with_name(ty)?;
-                    Ok(ASTExpression {
-                        span: component.span.clone(),
-                        kind: ASTExpressionKind::Component(component),
-                    })
-                } else {
-                    Err(ParseError::UnexpectedToken(self.eat()?, "'{'".to_string()))
-                };
-            } else if matches!(current_kind, TokenKind::LBrace) {
-                let component = self.parse_component_expr()?;
-                return Ok(ASTExpression {
-                    span: component.span.clone(),
-                    kind: ASTExpressionKind::Component(component),
-                });
-            }
+        let expr = if let TokenKind::Identifier(_) = self.peek()?.kind
+            && let Some(value) = self.parse_identifier_exprs()?
+        {
+            value
+        } else {
+            let current = self.eat()?;
+            match current.kind {
+                TokenKind::Float(f) => Ok(ASTExpression {
+                    kind: ASTExpressionKind::FloatLiteral(f),
+                    span: current.span,
+                }),
+                TokenKind::Int(i) => Ok(ASTExpression {
+                    kind: ASTExpressionKind::IntLiteral(i),
+                    span: current.span,
+                }),
+                TokenKind::Identifier(i) => Ok(ASTExpression {
+                    kind: ASTExpressionKind::Identifier(i),
+                    span: current.span,
+                }),
+                TokenKind::String(s) => Ok(ASTExpression {
+                    kind: ASTExpressionKind::StringLiteral(s),
+                    span: current.span,
+                }),
+                TokenKind::LParen => {
+                    let expr = self.parse_expression()?;
+                    self.expect(&TokenKind::RParen)?;
+                    Ok(expr)
+                }
+
+                _ => Err(ParseError::UnexpectedToken(
+                    current,
+                    "an expression".to_string(),
+                )),
+            }?
         };
         if let TokenKind::Dot = self.peek()?.kind {
             self.eat()?;

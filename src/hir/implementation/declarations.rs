@@ -1,9 +1,7 @@
 use crate::hir::{
-    {
-        HirId, SlynxHir,
-        declaration::{ComponentMemberDeclaration, SpecializedComponent},
-        error::{HIRError, HIRErrorKind},
-        types::HirType,
+    HirId, SlynxHir,
+    deffinitions::{
+        ComponentMemberDeclaration, HirDeclaration, HirDeclarationKind, SpecializedComponent,
     },
     error::{HIRError, HIRErrorKind},
     types::HirType,
