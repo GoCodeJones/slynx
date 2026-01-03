@@ -20,10 +20,11 @@ impl WebCompiler {
             span: DUMMY_SP,
             props: exprs
                 .iter()
-                .map(|idx| {
+                .enumerate()
+                .map(|(idx, ptr)| {
                     PropOrSpread::Prop(Box::new(Self::prop(
                         &format!("f{idx}"),
-                        self.compile_expression(&ctx.exprs[*idx], ctx, ir),
+                        self.compile_expression(&ctx.exprs[*ptr], ctx, ir),
                     )))
                 })
                 .collect(),
@@ -37,7 +38,6 @@ impl WebCompiler {
         ctx: &IntermediateContext,
         ir: &IntermediateRepr,
     ) -> Expr {
-        let parent = self.compile_expression(&ctx.exprs[parent], ctx, ir);
         Expr::Member(MemberExpr {
             span: DUMMY_SP,
             obj: Box::new(parent),
