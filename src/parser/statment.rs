@@ -56,7 +56,7 @@ impl Parser {
         })
     }
     
-    pub fn parse_statment(&mut self) -> Result<ASTStatment, ParseError> {
+    pub fn parse_statment(&mut self) -> Result<ASTStatment> {
         match self.peek()?.kind {
             TokenKind::Let => {
                 let span = self.eat()?.span;
