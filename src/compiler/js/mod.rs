@@ -106,49 +106,21 @@ impl SlynxCompiler for WebCompiler {
                         declare: false,
                     })))
                 }
-                IntermediateInstruction::Move { target, value } => 
-                    match target {
-                        IntermediatePlace::Local(local) => Stmt::Expr(ExprStmt {
-                            expr: Box::new(Expr::Assign(AssignExpr {
-                            span: DUMMY_SP,
-                            op: AssignOp::Assign,
-                            left: AssignTarget::Simple(SimpleAssignTarget::Ident(BindingIdent {
-                                id: self.names.get(&ctx.vars[*local]).unwrap().clone(),
-                                type_ann: None,
-                            })),
-                            right: Box::new({
-                                let expr = self.compile_expression(&ctx.exprs[*value], ctx, ir);
-                                expr
-                            }),
-                        })),
+                IntermediateInstruction::Move { target, value } => Stmt::Expr(ExprStmt {
+                    expr: Box::new(Expr::Assign(AssignExpr {
                         span: DUMMY_SP,
-                    }),
-                        IntermediatePlace::Field { parent, field } => {
-                            Stmt::Expr(ExprStmt {
-                                expr: Box::new(Expr::Assign(AssignExpr {
-                                    span: DUMMY_SP,
-                                    op: AssignOp::Assign,
-                                    left: AssignTarget::Pat(AssignTargetPat::Object(ObjectPat{
-                                        span: DUMMY_SP,
-                                        props: vec![ObjectPatProp::KeyValue(KeyValuePatProp{
-                                            key: PropName::Ident(format!("f{field}").into()),
-                                            value: Box::new(Pat::Expr({
-                                                let expr = self.compile_expression(&ctx.exprs[*value], ctx, ir);
-                                                Box::new(expr)
-                                            }))
-                                        })],
-                                        type_ann: None,
-                                        optional: true
-                                    })),
-                                    right: Box::new({
-                                        let expr = self.compile_expression(&ctx.exprs[*value], ctx, ir);
-                                        expr
-                                    }),
-                                })),
-                                span: DUMMY_SP,
-                            })
-                        }
-                },
+                        op: AssignOp::Assign,
+                        left: AssignTarget::Simple(SimpleAssignTarget::Ident(BindingIdent {
+                            id: self.names.get(&ctx.vars[*target]).unwrap().clone(),
+                            type_ann: None,
+                        })),
+                        right: Box::new({
+                            let expr = self.compile_expression(&ctx.exprs[*value], ctx, ir);
+                            expr
+                        }),
+                    })),
+                    span: DUMMY_SP,
+                }),
                 u => unimplemented!("{:?}", u),
             };
             out.push(stmt);
