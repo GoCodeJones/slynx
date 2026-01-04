@@ -1,15 +1,56 @@
 use crate::parser::{
     Parser,
-    ast::{ASTStatment, ASTStatmentKind},
+    ast::{ASTStatment, ASTStatmentKind, Span},
     error::ParseError,
+    lexer::tokens::{Token, TokenKind},
 };
 
 impl Parser {
-    pub fn parse_statment(&mut self) -> Result<ASTStatment, ParseError> {
-        let expr = self.parse_expression()?;
+    ///Parses a let statment. Until now it's only for variable declaration, so, this only parses 'let name: t = value;' or 'let name = value;', same for mut variants
+    ///Maybe, in the future, more things will be parsed.
+    ///Obs: this function should initialize right after 'let' token, and the `letstan` the span of the 'let' token
+    pub fn parse_let_statment(&mut self, letspan: Span) -> Result<ASTStatment, ParseError> {
+        let Token {
+            kind: TokenKind::Identifier(name),
+            ..
+        } = self.expect(&TokenKind::Identifier("".into()))?
+        else {
+            unreachable!();
+        };
+        let vartype = match self.peek()?.kind {
+            TokenKind::Colon => {
+                self.eat()?;
+                Some(self.parse_type()?)
+            }
+            _ => None,
+        };
+        self.eat()?; //eat '='
+        let rhs = self.parse_expression()?;
         Ok(ASTStatment {
-            span: expr.span.clone(),
-            kind: ASTStatmentKind::Expression(expr),
+            span: Span {
+                start: letspan.start,
+                end: rhs.span.end,
+            },
+            kind: ASTStatmentKind::Var {
+                name,
+                ty: vartype,
+                rhs,
+            },
         })
+    }
+    pub fn parse_statment(&mut self) -> Result<ASTStatment, ParseError> {
+        match self.peek()?.kind {
+            TokenKind::Let => {
+                let span = self.eat()?.span;
+                self.parse_let_statment(span)
+            }
+            _ => {
+                let expr = self.parse_expression()?;
+                Ok(ASTStatment {
+                    span: expr.span.clone(),
+                    kind: ASTStatmentKind::Expression(expr),
+                })
+            }
+        }
     }
 }

@@ -37,6 +37,7 @@ impl std::fmt::Display for TokenKind {
             Self::Pub => "pub".to_string(),
             Self::Prop => "prop".to_string(),
             Self::Object => "object".to_string(),
+            Self::Let => "let".to_string(),
             Self::Float(value) => value.to_string(),
             Self::Int(value) => value.to_string(),
             Self::String(value) => value.to_string(),
@@ -80,6 +81,7 @@ pub enum TokenKind {
     Pub,
     Prop,
     Object,
+    Let,
 }
 
 impl std::fmt::Display for Token {
