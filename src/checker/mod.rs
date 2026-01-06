@@ -286,6 +286,10 @@ impl TypeChecker {
                 HirStatmentKind::Expression { expr } => {
                     expr.ty = self.get_type_of_expr(expr, &expr.span.clone())?;
                 }
+                HirStatmentKind::Assign { lhs, value } => {
+                    let ty = self.resolve(&lhs.ty)?;
+                    value.ty = self.unify(&ty, &value.ty, &value.span)?;
+                }
             }
         }
         Ok(())
@@ -484,7 +488,12 @@ impl TypeChecker {
         match &mut statment.kind {
             
             HirStatmentKind::Variable { name, value, ty } => {
-                println!("{name:?} {value:?} {:?}", ty);
+                value.ty = self.unify(&value.ty, &ty, &statment.span)?;
+                self.types.insert(*name, value.ty.clone());
+            }
+            HirStatmentKind::Assign { lhs, value } => {
+                let ty = self.resolve(&lhs.ty)?;
+                value.ty = self.unify(&ty, &value.ty, &value.span)?;
             }
             HirStatmentKind::Expression { expr } => self.default_expr(expr)?,
             HirStatmentKind::Return { expr } => {
