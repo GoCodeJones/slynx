@@ -4,10 +4,24 @@ use crate::{
         deffinitions::{HirStatment, HirStatmentKind},
         error::HIRError, types::HirType,
     },
-    parser::ast::{ASTStatment, ASTStatmentKind},
+    parser::ast::{ASTExpression, ASTExpressionKind, ASTStatment, ASTStatmentKind},
 };
 
 impl SlynxHir {
+    
+    pub fn check_existance(&mut self, expr:&ASTExpression) -> Result<(), HIRError> {
+        match &expr.kind {
+            ASTExpressionKind::FieldAccess { parent, .. } => {
+                self.check_existance(parent)?;       
+            }
+            ASTExpressionKind::Identifier(name) => {
+                self.last_scope().retrieve_name(name, &expr.span)?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+    
     pub fn resolve_statment(&mut self, statment: ASTStatment) -> Result<HirStatment, HIRError> {
         match statment.kind {
             ASTStatmentKind::Expression(expr) => {
@@ -15,6 +29,15 @@ impl SlynxHir {
                 Ok(HirStatment {
                     span: expr.span.clone(),
                     kind: HirStatmentKind::Expression { expr },
+                })
+            }
+            ASTStatmentKind::Assign { lhs, rhs } => {
+                let lhs = self.resolve_expr(lhs, None)?;
+                let rhs = self.resolve_expr(rhs, None)?;
+                Ok(HirStatment {
+                    kind: HirStatmentKind::Assign {
+                        lhs, value: rhs
+                    }, span: statment.span
                 })
             }
             ASTStatmentKind::MutableVar { name, ty, rhs } => {

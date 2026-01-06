@@ -64,6 +64,10 @@ pub struct HirStatment {
 #[derive(Debug)]
 #[repr(C)]
 pub enum HirStatmentKind {
+    Assign {
+        lhs: HirExpression,
+        value: HirExpression
+    },
     Variable {
         name: HirId,
         value: HirExpression,
