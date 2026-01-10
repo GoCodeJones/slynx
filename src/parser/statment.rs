@@ -1,3 +1,5 @@
+use color_eyre::eyre::Result;
+
 use crate::parser::{
     Parser,
     ast::{ASTStatment, ASTStatmentKind, Span},
@@ -9,7 +11,7 @@ impl Parser {
     ///Parses a let statment. Until now it's only for variable declaration, so, this only parses 'let name: t = value;' or 'let name = value;', same for mut variants
     ///Maybe, in the future, more things will be parsed.
     ///Obs: this function should initialize right after 'let' token, and the `letstan` the span of the 'let' token
-    pub fn parse_let_statment(&mut self, letspan: Span) -> Result<ASTStatment, ParseError> {
+    pub fn parse_let_statment(&mut self, letspan: Span) -> Result<ASTStatment> {
         let mut mutable = false;
         if let TokenKind::Mut = self.peek()?.kind {
             self.eat()?;
@@ -31,6 +33,8 @@ impl Parser {
         };
         self.eat()?; //eat '='
         let rhs = self.parse_expression()?;
+    pub fn parse_statment(&mut self) -> Result<ASTStatment> {
+        let expr = self.parse_expression()?;
         Ok(ASTStatment {
             span: Span {
                 start: letspan.start,
