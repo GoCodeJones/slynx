@@ -1,7 +1,6 @@
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
-use color_eyre::{eyre::Result, Report, owo_colors::OwoColorize};
-
+use color_eyre::{Report, eyre::Result, owo_colors::OwoColorize};
 
 use crate::{
     checker::TypeChecker,
@@ -149,8 +148,6 @@ impl SlynxContext {
         self.entry_point.to_string_lossy().to_string()
     }
 
-    
-
     pub fn start_compilation<S: SlynxCompiler>(self, compiler: S) -> Result<()> {
         let stream = match Lexer::tokenize(self.get_entry_point_source()) {
             Ok(value) => value,
@@ -173,8 +170,8 @@ impl SlynxContext {
         let decls = match Parser::new(stream).parse_declarations() {
             Ok(v) => v,
             Err(e) => {
-                return match e {
-                    ParseError::UnexpectedToken(ref token, _) => {
+                return match e.downcast_ref::<ParseError>() {
+                    Some(ref err @ ParseError::UnexpectedToken(token, _)) => {
                         let (line, column, src) =
                             self.get_line_info(&self.entry_point, token.span.start);
                         let err = SlynxError {
@@ -182,13 +179,13 @@ impl SlynxContext {
                             ty: SlynxErrorType::Parser,
                             column_start: column,
                             column_end: column + (token.span.end - token.span.start),
-                            message: e.to_string(),
+                            message: err.to_string(),
                             file: self.file_name(),
                             source_code: src.to_string(),
                         };
-                        Err(Report::new(e).wrap_err(err))
+                        Err(e.wrap_err(err))
                     }
-                    ParseError::UnexpectedEndOfInput => {
+                    Some(ParseError::UnexpectedEndOfInput) => {
                         let (line, column, src) = self.get_line_info(
                             &self.entry_point,
                             self.lines.get(&self.entry_point).unwrap().len() - 1,
@@ -202,8 +199,9 @@ impl SlynxContext {
                             file: self.file_name(),
                             source_code: src.to_string(),
                         };
-                        Err(Report::new(e).wrap_err(err))
+                        Err(e.wrap_err(err))
                     }
+                    None => Err(e),
                 };
             }
         };
