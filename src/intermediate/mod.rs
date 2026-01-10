@@ -17,7 +17,7 @@ use crate::{
     intermediate::{
         context::{IntermediateContext, IntermediateContextType, IntermediateProperty},
         expr::IntermediateExpr,
-        node::IntermediateInstruction,
+        node::{IntermediateInstruction, IntermediatePlace},
         string::StringPool,
         types::IntermediateType,
     },
@@ -218,7 +218,38 @@ impl IntermediateRepr {
         let alloc = self.active_context().allocate(name);
         self.active_context()
             .insert_instruction(IntermediateInstruction::Move {
-                target: alloc,
+                target: IntermediatePlace::Local(alloc),
+                value: idx,
+            })
+            .unwrap()
+    }
+
+    fn generate_place(&mut self, lhs: HirExpression) -> IntermediatePlace {
+        match lhs.kind {
+            HirExpressionKind::Identifier(id) => IntermediatePlace::Local(
+                self.active_context()
+                    .vars
+                    .iter()
+                    .rposition(|var| *var == id)
+                    .unwrap(),
+            ),
+            HirExpressionKind::FieldAccess { field_index, expr } => {
+                let structure_place = self.generate_place(*expr);
+                IntermediatePlace::Field {
+                    parent: 0,
+                    field: field_index,
+                }
+            }
+            _ => panic!("Unsupported expression type for place generation: {lhs:?}"),
+        }
+    }
+
+    pub fn generate_assign(&mut self, lhs: HirExpression, value: HirExpression) -> usize {
+        let idx = self.generate_expr(value);
+        let place = self.generate_place(lhs);
+        self.active_context()
+            .insert_instruction(IntermediateInstruction::Move {
+                target: place,
                 value: idx,
             })
             .unwrap()
@@ -238,6 +269,9 @@ impl IntermediateRepr {
         self.contexts.push(ctx);
         for statment in statments {
             match statment.kind {
+                HirStatmentKind::Assign { lhs, value } => {
+                    self.generate_assign(lhs, value);
+                }
                 HirStatmentKind::Variable { name, value, ty } => {
                     self.generate_var(name, value);
                 }
