@@ -45,7 +45,7 @@ pub struct SlynxHir {
     types: HashMap<HirId, HirType>,
     ///A hashmap mapping the id of some struct or object to its layout. The 'layout' in case is the name of the property. So something like `object Packet {data: [100]u8, ty: PacketTy} would be simply
     ///id => ['data', 'ty'] to resolve its order correctly if some object expression like Packet(ty:PacketTy::Crypto, data:[100]0) appears
-    objects_deffinitions: HashMap<HirId, Vec<String>>,
+    pub(crate) objects_deffinitions: HashMap<HirId, Vec<String>>,
     ///The scopes of this HIR. On the final it's expected to have only one, which is the global one
     scopes: Vec<HIRScope>,
 
