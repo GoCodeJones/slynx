@@ -10,9 +10,9 @@ use swc_atoms::Atom;
 use swc_common::{DUMMY_SP, SourceMap, SyntaxContext};
 use swc_ecma_ast::{
     AssignExpr, AssignOp, AssignTarget, AssignTargetPat, BinExpr, BinaryOp, BindingIdent, CallExpr,
-    Callee, Decl, Expr, ExprOrSpread, ExprStmt, Ident, KeyValuePatProp, Lit, Number, ObjectPat,
-    ObjectPatProp, Pat, Program, PropName, ReturnStmt, Script, SimpleAssignTarget, Stmt, VarDecl,
-    VarDeclKind, VarDeclarator,
+    Callee, Decl, Expr, ExprOrSpread, ExprStmt, Ident, KeyValuePatProp, Lit, MemberExpr,
+    MemberProp, Number, ObjectPat, ObjectPatProp, Pat, Program, PropName, ReturnStmt, Script,
+    SimpleAssignTarget, Stmt, VarDecl, VarDeclKind, VarDeclarator,
 };
 use swc_ecma_codegen::{Config, Emitter, text_writer::JsWriter};
 
@@ -127,27 +127,18 @@ impl SlynxCompiler for WebCompiler {
                         })),
                         span: DUMMY_SP,
                     }),
-                    IntermediatePlace::Field { field, .. } => Stmt::Expr(ExprStmt {
+                    IntermediatePlace::Field { field, parent } => Stmt::Expr(ExprStmt {
                         expr: Box::new(Expr::Assign(AssignExpr {
                             span: DUMMY_SP,
                             op: AssignOp::Assign,
-                            left: AssignTarget::Pat(AssignTargetPat::Object(ObjectPat {
+                            left: AssignTarget::Simple(SimpleAssignTarget::Member(MemberExpr {
                                 span: DUMMY_SP,
-                                props: vec![ObjectPatProp::KeyValue(KeyValuePatProp {
-                                    key: PropName::Ident(format!("f{field}").into()),
-                                    value: Box::new(Pat::Expr({
-                                        let expr =
-                                            self.compile_expression(&ctx.exprs[*value], ctx, ir);
-                                        Box::new(expr)
-                                    })),
-                                })],
-                                type_ann: None,
-                                optional: true,
+                                obj: Box::new(Expr::Ident(
+                                    self.names.get(&ctx.vars[*parent]).cloned().unwrap(),
+                                )),
+                                prop: MemberProp::Ident(format!("f{field}").into()),
                             })),
-                            right: Box::new({
-                                let expr = self.compile_expression(&ctx.exprs[*value], ctx, ir);
-                                expr
-                            }),
+                            right: Box::new(self.compile_expression(&ctx.exprs[*value], ctx, ir)),
                         })),
                         span: DUMMY_SP,
                     }),
