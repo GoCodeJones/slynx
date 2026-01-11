@@ -3,7 +3,6 @@ use color_eyre::eyre::Result;
 use crate::parser::{
     Parser,
     ast::{ASTStatment, ASTStatmentKind, Span},
-    error::ParseError,
     lexer::tokens::{Token, TokenKind},
 };
 
@@ -33,8 +32,6 @@ impl Parser {
         };
         self.eat()?; //eat '='
         let rhs = self.parse_expression()?;
-    pub fn parse_statment(&mut self) -> Result<ASTStatment> {
-        let expr = self.parse_expression()?;
         Ok(ASTStatment {
             span: Span {
                 start: letspan.start,
@@ -55,7 +52,7 @@ impl Parser {
             },
         })
     }
-    
+
     pub fn parse_statment(&mut self) -> Result<ASTStatment> {
         match self.peek()?.kind {
             TokenKind::Let => {
@@ -67,11 +64,17 @@ impl Parser {
                 if matches!(self.peek()?.kind, TokenKind::Eq) && expr.is_assignable() {
                     self.eat()?;
                     let rhs = self.parse_expression()?;
-                    Ok(ASTStatment { 
-                        span: Span {start: expr.span.start, end: rhs.span.end},
-                        kind: ASTStatmentKind::Assign { lhs: expr, rhs: rhs }
+                    Ok(ASTStatment {
+                        span: Span {
+                            start: expr.span.start,
+                            end: rhs.span.end,
+                        },
+                        kind: ASTStatmentKind::Assign {
+                            lhs: expr,
+                            rhs: rhs,
+                        },
                     })
-                }else{
+                } else {
                     Ok(ASTStatment {
                         span: expr.span.clone(),
                         kind: ASTStatmentKind::Expression(expr),

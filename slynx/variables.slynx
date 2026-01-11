@@ -1,4 +1,8 @@
-func mul_add(a:int,b:int,c:int):int {
-    let mut mult = a * b;
-    mult + c
+object Pessoa{
+    name: str
+}
+func p(a:int,b:int,c:int):int {
+    let mut p = Pessoa(name: "John");
+    p.name = "maracutaia";
+    p.name
 }

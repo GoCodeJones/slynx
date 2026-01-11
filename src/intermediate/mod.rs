@@ -234,7 +234,7 @@ impl IntermediateRepr {
                     .unwrap(),
             ),
             HirExpressionKind::FieldAccess { field_index, expr } => {
-                let structure_place = self.generate_place(*expr);
+                let _structure_place = self.generate_place(*expr);
                 IntermediatePlace::Field {
                     parent: 0,
                     field: field_index,
@@ -272,7 +272,7 @@ impl IntermediateRepr {
                 HirStatmentKind::Assign { lhs, value } => {
                     self.generate_assign(lhs, value);
                 }
-                HirStatmentKind::Variable { name, value, ty } => {
+                HirStatmentKind::Variable { name, value, .. } => {
                     self.generate_var(name, value);
                 }
                 HirStatmentKind::Expression { expr } => {

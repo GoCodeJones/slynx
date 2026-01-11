@@ -4,10 +4,7 @@ use swc_ecma_ast::{
 };
 
 use crate::{
-    compiler::{
-        js::{WebCompiler, create_ident},
-        slynx_compiler::SlynxCompiler,
-    },
+    compiler::{js::WebCompiler, slynx_compiler::SlynxCompiler},
     intermediate::{
         IntermediateRepr,
         context::{IntermediateContext, IntermediateContextType, IntermediateProperty},

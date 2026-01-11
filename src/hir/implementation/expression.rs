@@ -184,7 +184,8 @@ impl SlynxHir {
                                     prop_names: vec![field],
                                 },
                                 span: expr.span,
-                            })
+                            }
+                            .into())
                         }
                     }
                     HirType::VarReference(rf) => Ok(HirExpression {
@@ -195,15 +196,8 @@ impl SlynxHir {
                             field_index: usize::MAX,
                         },
                         span: expr.span,
-                    })
-                } else {
-                    Err(HIRError {
-                        kind: HIRErrorKind::PropertyNotRecognized {
-                            prop_names: vec![field],
-                        },
-                        span: expr.span,
-                    }
-                    .into())
+                    }),
+                    u => unreachable!("{u:?}"),
                 }
             }
         }

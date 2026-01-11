@@ -111,7 +111,7 @@ impl TypeChecker {
     }
 
     ///Resolves recursively the names of the types. If A -> B, B -> int; then we assume that A -> int
-    fn resolve(&self, ty: &HirType) -> Result<HirType> {
+    fn resolve(&self, ty: &HirType, span: &Span) -> Result<HirType> {
         match ty {
             HirType::Field(FieldMethod::Type(rf, index)) => {
                 if let Some(ty) = self.types.get(rf) {
@@ -152,13 +152,14 @@ impl TypeChecker {
                         Err(TypeError {
                             kind: TypeErrorKind::Unrecognized(rf),
                             span: span.clone(),
-                        })
+                        }
+                        .into())
                     }
                 } else {
                     Ok(ty.clone())
                 }
             }
-            HirType::Reference { rf, .. } => Ok(ty.clone()),
+            HirType::Reference { .. } => Ok(ty.clone()),
             HirType::VarReference(rf) => {
                 if let Some(ty) = self.types.get(rf) {
                     Ok(self.resolve(ty, span)?)
@@ -265,10 +266,13 @@ impl TypeChecker {
     }
 
     fn unify_with_ref(&mut self, rf: HirId, ty: &HirType, span: &Span) -> Result<HirType> {
-        let resolved_ref = self.resolve(&HirType::Reference {
-            rf,
-            generics: Vec::new(),
-        })?;
+        let resolved_ref = self.resolve(
+            &HirType::Reference {
+                rf,
+                generics: Vec::new(),
+            },
+            span,
+        )?;
         if !matches!(resolved_ref, HirType::Reference { .. }) {
             return self.unify(&resolved_ref, ty, span);
         }
@@ -520,11 +524,7 @@ impl TypeChecker {
         Ok(())
     }
 
-    fn default_statment(
-        &mut self,
-        statment: &mut HirStatment,
-        expected: &HirType,
-    ) -> Result<()> {
+    fn default_statment(&mut self, statment: &mut HirStatment, expected: &HirType) -> Result<()> {
         match &mut statment.kind {
             HirStatmentKind::Variable { name, value, ty } => {
                 value.ty = self.unify(&value.ty, &ty, &statment.span)?;

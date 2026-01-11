@@ -4,8 +4,6 @@ use crate::{
     hir::{
         SlynxHir,
         deffinitions::{HirStatment, HirStatmentKind},
-        error::HIRError,
-        types::HirType,
     },
     parser::ast::{ASTExpression, ASTExpressionKind, ASTStatment, ASTStatmentKind},
 };
@@ -22,7 +20,7 @@ impl SlynxHir {
             _ => {}
         }
         Ok(())
-    }   
+    }
     pub fn resolve_statment(&mut self, statment: ASTStatment) -> Result<HirStatment> {
         match statment.kind {
             ASTStatmentKind::Expression(expr) => {
